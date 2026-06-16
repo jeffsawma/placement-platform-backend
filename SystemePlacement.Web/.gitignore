@@ -1,0 +1,57 @@
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Build .NET
+bin/
+obj/
+[Bb]uild/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+
+# NuGet
+packages/
+*.nupkg
+
+# Logs et temporaires
+*.log
+*.tmp
+*.temp
+*.cache
+
+# Configuration locale
+appsettings.Local.json
+appsettings.Production.json
+
+# User Secrets
+secrets.json
+Microsoft/UserSecrets/
+
+# Uploads
+wwwroot/uploads/*
+!wwwroot/uploads/.gitkeep
+!wwwroot/uploads/**/.gitkeep
+
+# Tests
+TestResults/
+coverage/
+coverage-report/
+
+# Docker
+docker-compose.override.yml
+
+# Rider / VS Code
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
