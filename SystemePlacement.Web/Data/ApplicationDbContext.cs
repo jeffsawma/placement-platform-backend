@@ -1,5 +1,33 @@
+using Microsoft.EntityFrameworkCore;
+using SystemePlacement.Web.Models;
+
 namespace SystemePlacement.Web.Data;
 
-public class ApplicationDbContext
+public class ApplicationDbContext : DbContext
 {
+    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+        : base(options)
+    {
+    }
+
+    public DbSet<Role> Roles { get; set; }
+
+    public DbSet<Utilisateur> Utilisateurs { get; set; }
+
+    public DbSet<Administrateur> Administrateurs { get; set; }
+
+    public DbSet<Etudiant> Etudiants { get; set; }
+
+    public DbSet<Employeur> Employeurs { get; set; }
+
+    public DbSet<ResponsableStage> ResponsablesStage { get; set; }
+
+    public DbSet<College> Colleges { get; set; }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
+    }
 }
