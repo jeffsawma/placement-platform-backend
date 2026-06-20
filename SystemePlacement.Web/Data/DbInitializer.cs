@@ -8,8 +8,8 @@ public static class DbInitializer
 {
     public static async Task SeedAsync(ApplicationDbContext context)
     {
-        // Cree la base si elle n'existe pas.
-        await context.Database.EnsureCreatedAsync();
+        // Applique les migrations EF Core si necessaire
+        await context.Database.MigrateAsync();
 
         await SeedRolesAsync(context);
         await SeedAdminAsync(context);

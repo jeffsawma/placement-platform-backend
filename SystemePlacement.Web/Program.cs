@@ -1,8 +1,9 @@
-using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi;
 using Microsoft.OpenApi.Models;
+using System.Text;
 using SystemePlacement.Web.Data;
 using SystemePlacement.Web.Services;
 using SystemePlacement.Web.Services.Interfaces;
@@ -12,7 +13,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Controllers API
 builder.Services.AddControllers();
 
-// Swagger pour tester les routes pendant le developpement.
+// Swagger pour tester les routes pendant le développement
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSwaggerGen(options =>
@@ -42,15 +43,15 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-// Permet a CurrentUserService de lire l'utilisateur connecte depuis le token JWT.
+// Permet à CurrentUserService de lire l'utilisateur connecté depuis le token JWT
 builder.Services.AddHttpContextAccessor();
 
-// Connexion MySQL avec Entity Framework Core.
+// Connexion MySQL avec Entity Framework Core
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 if (string.IsNullOrWhiteSpace(connectionString))
 {
-    throw new InvalidOperationException("La chaine de connexion DefaultConnection est manquante.");
+    throw new InvalidOperationException("La chaîne de connexion DefaultConnection est manquante.");
 }
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -69,7 +70,7 @@ var jwtAudience = builder.Configuration["Jwt:Audience"];
 
 if (string.IsNullOrWhiteSpace(jwtKey))
 {
-    throw new InvalidOperationException("La cle JWT est manquante dans appsettings.json.");
+    throw new InvalidOperationException("La clé JWT est manquante dans appsettings.json.");
 }
 
 builder.Services.AddAuthentication(options =>
@@ -96,14 +97,14 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
-// Swagger seulement en developpement.
+// Swagger seulement en développement
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-// Cree la base et ajoute les roles de base si necessaire.
+// Crée la base et ajoute les rôles de base si nécessaire
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
@@ -112,7 +113,7 @@ using (var scope = app.Services.CreateScope())
 
 app.UseHttpsRedirection();
 
-// Important : Authentication avant Authorization.
+// Important : Authentication avant Authorization
 app.UseAuthentication();
 app.UseAuthorization();
 

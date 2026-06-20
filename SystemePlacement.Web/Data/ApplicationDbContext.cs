@@ -10,6 +10,7 @@ public class ApplicationDbContext : DbContext
     {
     }
 
+    // Dev 1 - Authentification, utilisateurs et rôles
     public DbSet<Role> Roles { get; set; }
 
     public DbSet<Utilisateur> Utilisateurs { get; set; }
@@ -22,7 +23,10 @@ public class ApplicationDbContext : DbContext
 
     public DbSet<ResponsableStage> ResponsablesStage { get; set; }
 
+    // Dev 2 - Paramétrage, collèges et domaines d'études
     public DbSet<College> Colleges { get; set; }
+
+    public DbSet<DomaineEtude> DomainesEtudes { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
