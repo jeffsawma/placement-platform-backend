@@ -9,14 +9,14 @@ public class DomaineEtudeConfiguration : IEntityTypeConfiguration<DomaineEtude>
 {
     public void Configure(EntityTypeBuilder<DomaineEtude> builder)
     {
-        builder.ToTable("DOMAINE_ETUDE"); // Table name
+        builder.ToTable("DOMAINE_ETUDE"); 
 
-        builder.HasKey(d => d.IdDomaine); // PK
+        builder.HasKey(d => d.IdDomaine); 
 
         builder.Property(d => d.IdDomaine)
             .HasColumnName("id_domaine");
 
-        builder.Property(d => d.IdCollege) // FK
+        builder.Property(d => d.IdCollege) 
             .HasColumnName("id_college")
             .IsRequired();
 

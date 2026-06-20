@@ -10,6 +10,5 @@ public class College
     // Relations
     // Un collège peut avoir plusieurs domaines d'étude et plusieurs utilisateurs
     public ICollection<DomaineEtude> DomaineEtudes { get; set; } = new List<DomaineEtude>();
-    // public ICollection<Utilisateur> Utilisateurs { get; set; } = new List<Utilisateur>();
+    public ICollection<Utilisateur> Utilisateurs { get; set; } = new List<Utilisateur>();
 }
-

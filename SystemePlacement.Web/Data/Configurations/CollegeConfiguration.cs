@@ -8,9 +8,12 @@ public class CollegeConfiguration : IEntityTypeConfiguration<College>
 {
     public void Configure(EntityTypeBuilder<College> builder)
     {
-        builder.ToTable("COLLEGE"); // Table name
+        builder.ToTable("COLLEGE");
 
-        builder.HasKey(c => c.IdCollege); // PK
+        builder.HasKey(c => c.IdCollege);
+
+        builder.Property(c => c.IdCollege)
+            .HasColumnName("id_college");
 
         builder.Property(c => c.Nom)
             .HasColumnName("nom")
@@ -24,6 +27,10 @@ public class CollegeConfiguration : IEntityTypeConfiguration<College>
 
         builder.Property(c => c.Actif)
             .HasColumnName("actif")
+            .HasDefaultValue(true)
             .IsRequired();
+
+        builder.HasIndex(c => c.Nom)
+            .IsUnique();
     }
 }
