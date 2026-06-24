@@ -37,4 +37,24 @@ public class CandidaturesController : ControllerBase
     [HttpPut("{idCandidature:int}/statut")]
     public async Task<IActionResult> ChangerStatut(int idCandidature, ChangerStatutRequest request)
         => await _service.ChangerStatutAsync(idCandidature, request) ? NoContent() : NotFound();
+
+    [HttpPost("cv")]
+    public async Task<IActionResult> UploadCv(IFormFile fichier)
+    {
+        if (fichier is null || fichier.Length == 0)
+            return BadRequest(new { message = "Aucun fichier fourni." });
+
+        var dossier = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "cv");
+        Directory.CreateDirectory(dossier);
+
+        var nomFichier = $"{Guid.NewGuid():N}_{Path.GetFileName(fichier.FileName)}";
+        var chemin = Path.Combine(dossier, nomFichier);
+
+        using (var stream = new FileStream(chemin, FileMode.Create))
+        {
+            await fichier.CopyToAsync(stream);
+        }
+
+        return Ok(new { url = $"/uploads/cv/{nomFichier}" });
+    }
 }

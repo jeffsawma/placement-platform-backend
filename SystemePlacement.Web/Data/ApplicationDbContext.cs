@@ -31,6 +31,11 @@ public class ApplicationDbContext : DbContext
     // Dev 4 - Candidatures
     public DbSet<Candidature> Candidatures { get; set; }
 
+    // Dev 4 - Offres (recherche/statut, en attendant Dev 3)
+    public DbSet<Offre> Offres { get; set; }
+
+    public DbSet<OffreDomaine> OffreDomaines { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
