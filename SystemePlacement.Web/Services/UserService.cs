@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using SystemePlacement.Web.Data;
 using SystemePlacement.Web.DTOs.Users;
+using SystemePlacement.Web.Enums;
 using SystemePlacement.Web.Models;
 using SystemePlacement.Web.Services.Interfaces;
 
@@ -9,16 +10,21 @@ namespace SystemePlacement.Web.Services;
 public class UserService : IUserService
 {
     private readonly ApplicationDbContext _context;
+    private readonly ICurrentUserService _currentUserService;
 
-    public UserService(ApplicationDbContext context)
+    public UserService(ApplicationDbContext context, ICurrentUserService currentUserService)
     {
         _context = context;
+        _currentUserService = currentUserService;
     }
 
     public async Task<IEnumerable<UtilisateurResponseDto>> GetAllAsync()
     {
-        // Retourne tous les utilisateurs avec leur role et leur college.
-        return await _context.Utilisateurs
+        // SuperAdmin voit tous les utilisateurs.
+        // Admin voit seulement les utilisateurs de son college.
+        var query = ApplyCollegeScope(_context.Utilisateurs.AsQueryable());
+
+        return await query
             .Include(u => u.Role)
             .Include(u => u.College)
             .OrderBy(u => u.Nom)
@@ -44,8 +50,10 @@ public class UserService : IUserService
 
     public async Task<UtilisateurResponseDto?> GetByIdAsync(int idUtilisateur)
     {
-        // Retourne un seul utilisateur selon son id.
-        return await _context.Utilisateurs
+        // Retourne un seul utilisateur, en respectant le college de l'admin.
+        var query = ApplyCollegeScope(_context.Utilisateurs.AsQueryable());
+
+        return await query
             .Include(u => u.Role)
             .Include(u => u.College)
             .Where(u => u.IdUtilisateur == idUtilisateur)
@@ -70,6 +78,8 @@ public class UserService : IUserService
 
     public async Task<UtilisateurResponseDto> CreateAsync(UtilisateurCreateDto request)
     {
+        ApplyCreateRules(request);
+
         // Valide que le courriel n'est pas deja utilise.
         var courrielExiste = await _context.Utilisateurs
             .AnyAsync(u => u.Courriel == request.Courriel);
@@ -97,6 +107,8 @@ public class UserService : IUserService
             throw new InvalidOperationException("Le role selectionne est invalide.");
         }
 
+        await ValidateCollegeAsync(request.IdCollege);
+
         // Le mot de passe est hash avant d'etre sauvegarde.
         var utilisateur = new Utilisateur
         {
@@ -122,13 +134,19 @@ public class UserService : IUserService
 
     public async Task<bool> UpdateAsync(int idUtilisateur, UtilisateurUpdateDto request)
     {
-        var utilisateur = await _context.Utilisateurs
+        ApplyUpdateRules(request);
+
+        var query = ApplyCollegeScope(_context.Utilisateurs.AsQueryable());
+
+        var utilisateur = await query
             .FirstOrDefaultAsync(u => u.IdUtilisateur == idUtilisateur);
 
         if (utilisateur == null)
         {
             return false;
         }
+
+        await ValidateCollegeAsync(request.IdCollege);
 
         // On ne modifie pas le mot de passe ici.
         utilisateur.Prenom = request.Prenom;
@@ -147,7 +165,9 @@ public class UserService : IUserService
 
     public async Task<bool> SetActifAsync(int idUtilisateur, bool actif)
     {
-        var utilisateur = await _context.Utilisateurs
+        var query = ApplyCollegeScope(_context.Utilisateurs.AsQueryable());
+
+        var utilisateur = await query
             .FirstOrDefaultAsync(u => u.IdUtilisateur == idUtilisateur);
 
         if (utilisateur == null)
@@ -161,5 +181,85 @@ public class UserService : IUserService
         await _context.SaveChangesAsync();
 
         return true;
+    }
+
+    private IQueryable<Utilisateur> ApplyCollegeScope(IQueryable<Utilisateur> query)
+    {
+        // Le SuperAdmin est global : il peut consulter tous les colleges.
+        if (_currentUserService.Role == nameof(RoleUtilisateur.SuperAdministrateur))
+        {
+            return query;
+        }
+
+        // Un admin local ne doit voir que les utilisateurs de son college.
+        if (_currentUserService.Role == nameof(RoleUtilisateur.Administrateur))
+        {
+            if (!_currentUserService.IdCollege.HasValue)
+            {
+                return query.Where(u => false);
+            }
+
+            return query.Where(u => u.IdCollege == _currentUserService.IdCollege.Value);
+        }
+
+        // Par securite, aucun autre role ne doit acceder a la gestion des utilisateurs.
+        return query.Where(u => false);
+    }
+
+    private void ApplyCreateRules(UtilisateurCreateDto request)
+    {
+        // Un admin de college ne peut pas creer un SuperAdmin
+        // et ne peut creer que des utilisateurs dans son propre college.
+        if (_currentUserService.Role == nameof(RoleUtilisateur.Administrateur))
+        {
+            if (!_currentUserService.IdCollege.HasValue)
+            {
+                throw new InvalidOperationException("Votre compte administrateur n'est rattache a aucun college.");
+            }
+
+            if (request.IdRole == (int)RoleUtilisateur.SuperAdministrateur)
+            {
+                throw new InvalidOperationException("Seul un SuperAdministrateur peut creer un SuperAdministrateur.");
+            }
+
+            request.IdCollege = _currentUserService.IdCollege.Value;
+        }
+    }
+
+    private void ApplyUpdateRules(UtilisateurUpdateDto request)
+    {
+        // Un admin de college ne peut pas transformer un utilisateur en SuperAdmin
+        // et ne peut pas le deplacer dans un autre college.
+        if (_currentUserService.Role == nameof(RoleUtilisateur.Administrateur))
+        {
+            if (!_currentUserService.IdCollege.HasValue)
+            {
+                throw new InvalidOperationException("Votre compte administrateur n'est rattache a aucun college.");
+            }
+
+            if (request.IdRole == (int)RoleUtilisateur.SuperAdministrateur)
+            {
+                throw new InvalidOperationException("Seul un SuperAdministrateur peut attribuer le role SuperAdministrateur.");
+            }
+
+            request.IdCollege = _currentUserService.IdCollege.Value;
+        }
+    }
+
+    private async Task ValidateCollegeAsync(int? idCollege)
+    {
+        // Le SuperAdmin peut ne pas etre rattache a un college.
+        if (!idCollege.HasValue)
+        {
+            return;
+        }
+
+        var collegeExiste = await _context.Colleges
+            .AnyAsync(c => c.IdCollege == idCollege.Value && c.Actif);
+
+        if (!collegeExiste)
+        {
+            throw new InvalidOperationException("Le college selectionne est invalide.");
+        }
     }
 }
