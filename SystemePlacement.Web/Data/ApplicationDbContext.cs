@@ -28,10 +28,8 @@ public class ApplicationDbContext : DbContext
 
     public DbSet<DomaineEtude> DomainesEtudes { get; set; }
 
-    // Dev 4 - Candidatures
     public DbSet<Candidature> Candidatures { get; set; }
 
-    // Dev 4 - Offres (recherche/statut, en attendant Dev 3)
     public DbSet<Offre> Offres { get; set; }
 
     public DbSet<OffreDomaine> OffreDomaines { get; set; }
