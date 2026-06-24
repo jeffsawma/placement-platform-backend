@@ -1,9 +1,12 @@
-using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi;
 using Microsoft.OpenApi.Models;
+using System.Text;
 using SystemePlacement.Web.Data;
+using SystemePlacement.Web.Repositories;
+using SystemePlacement.Web.Repositories.Interfaces;
 using SystemePlacement.Web.Services;
 using SystemePlacement.Web.Services.Interfaces;
 
@@ -12,7 +15,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Controllers API
 builder.Services.AddControllers();
 
-// Swagger pour tester les routes pendant le developpement.
+// Swagger pour tester les routes pendant le d�veloppement
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSwaggerGen(options =>
@@ -42,15 +45,15 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-// Permet a CurrentUserService de lire l'utilisateur connecte depuis le token JWT.
+// Permet � CurrentUserService de lire l'utilisateur connect� depuis le token JWT
 builder.Services.AddHttpContextAccessor();
 
-// Connexion MySQL avec Entity Framework Core.
+// Connexion MySQL avec Entity Framework Core
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 if (string.IsNullOrWhiteSpace(connectionString))
 {
-    throw new InvalidOperationException("La chaine de connexion DefaultConnection est manquante.");
+    throw new InvalidOperationException("La cha�ne de connexion DefaultConnection est manquante.");
 }
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -61,6 +64,7 @@ builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+
 
 // Autorise le frontend React local a appeler l'API.
 builder.Services.AddCors(options =>
@@ -74,6 +78,11 @@ builder.Services.AddCors(options =>
     });
 });
 
+// Services Dev 4
+builder.Services.AddScoped<ICandidatureRepository, CandidatureRepository>();
+builder.Services.AddScoped<ICandidatureService, CandidatureService>();
+
+
 // Configuration JWT
 var jwtKey = builder.Configuration["Jwt:Key"];
 var jwtIssuer = builder.Configuration["Jwt:Issuer"];
@@ -81,7 +90,7 @@ var jwtAudience = builder.Configuration["Jwt:Audience"];
 
 if (string.IsNullOrWhiteSpace(jwtKey))
 {
-    throw new InvalidOperationException("La cle JWT est manquante dans appsettings.json.");
+    throw new InvalidOperationException("La cl� JWT est manquante dans appsettings.json.");
 }
 
 builder.Services.AddAuthentication(options =>
@@ -108,14 +117,14 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
-// Swagger seulement en developpement.
+// Swagger seulement en d�veloppement
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-// Cree la base et ajoute les roles de base si necessaire.
+// Cr�e la base et ajoute les r�les de base si n�cessaire
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
@@ -124,8 +133,12 @@ using (var scope = app.Services.CreateScope())
 
 app.UseHttpsRedirection();
 
+
 // Important : CORS avant Authentication/Authorization.
 app.UseCors("FrontendPolicy");
+
+
+// Important : Authentication avant Authorization
 
 app.UseAuthentication();
 app.UseAuthorization();

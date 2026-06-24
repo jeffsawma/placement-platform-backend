@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SystemePlacement.Web.Data;
 
@@ -11,9 +12,11 @@ using SystemePlacement.Web.Data;
 namespace SystemePlacement.Web.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260620035538_Dev2AddDomaineEtude")]
+    partial class Dev2AddDomaineEtude
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -49,52 +52,6 @@ namespace SystemePlacement.Web.Migrations
                         .IsUnique();
 
                     b.ToTable("administrateurs", (string)null);
-                });
-
-            modelBuilder.Entity("SystemePlacement.Web.Models.Candidature", b =>
-                {
-                    b.Property<int>("IdCandidature")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("id_candidature");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("IdCandidature"));
-
-                    b.Property<string>("CvUrl")
-                        .HasMaxLength(255)
-                        .HasColumnType("varchar(255)")
-                        .HasColumnName("cv_url");
-
-                    b.Property<DateTime>("DateCandidature")
-                        .HasColumnType("datetime(6)")
-                        .HasColumnName("date_candidature");
-
-                    b.Property<int>("IdEtudiant")
-                        .HasColumnType("int")
-                        .HasColumnName("id_etudiant");
-
-                    b.Property<int>("IdOffre")
-                        .HasColumnType("int")
-                        .HasColumnName("id_offre");
-
-                    b.Property<string>("LettreMotivation")
-                        .HasColumnType("longtext")
-                        .HasColumnName("lettre_motivation");
-
-                    b.Property<string>("Statut")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("varchar(20)")
-                        .HasColumnName("statut");
-
-                    b.HasKey("IdCandidature");
-
-                    b.HasIndex("IdEtudiant");
-
-                    b.HasIndex("IdOffre", "IdEtudiant")
-                        .IsUnique();
-
-                    b.ToTable("CANDIDATURE", (string)null);
                 });
 
             modelBuilder.Entity("SystemePlacement.Web.Models.College", b =>
@@ -366,17 +323,6 @@ namespace SystemePlacement.Web.Migrations
                         .IsRequired();
 
                     b.Navigation("Utilisateur");
-                });
-
-            modelBuilder.Entity("SystemePlacement.Web.Models.Candidature", b =>
-                {
-                    b.HasOne("SystemePlacement.Web.Models.Etudiant", "Etudiant")
-                        .WithMany()
-                        .HasForeignKey("IdEtudiant")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Etudiant");
                 });
 
             modelBuilder.Entity("SystemePlacement.Web.Models.DomaineEtude", b =>

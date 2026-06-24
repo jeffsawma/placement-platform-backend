@@ -8,8 +8,7 @@ public class CollegeConfiguration : IEntityTypeConfiguration<College>
 {
     public void Configure(EntityTypeBuilder<College> builder)
     {
-        // Table des colleges/cegeps participants
-        builder.ToTable("colleges");
+        builder.ToTable("COLLEGE");
 
         builder.HasKey(c => c.IdCollege);
 
@@ -28,9 +27,9 @@ public class CollegeConfiguration : IEntityTypeConfiguration<College>
 
         builder.Property(c => c.Actif)
             .HasColumnName("actif")
-            .HasDefaultValue(true);
+            .HasDefaultValue(true)
+            .IsRequired();
 
-        // Evite deux colleges avec le meme nom
         builder.HasIndex(c => c.Nom)
             .IsUnique();
     }
