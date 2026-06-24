@@ -16,7 +16,7 @@ public class CurrentUserService : ICurrentUserService
     {
         get
         {
-            // Recupere le claim NameIdentifier dans le JWT.
+            // Recupere l'id utilisateur dans le token JWT.
             var id = _httpContextAccessor.HttpContext?.User
                 .FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -26,11 +26,26 @@ public class CurrentUserService : ICurrentUserService
         }
     }
 
+    public int? IdCollege
+    {
+        get
+        {
+            // Recupere l'id du college dans le token JWT.
+            // Pour un SuperAdministrateur, ce claim peut etre absent.
+            var idCollege = _httpContextAccessor.HttpContext?.User
+                .FindFirstValue("idCollege");
+
+            return int.TryParse(idCollege, out var value)
+                ? value
+                : null;
+        }
+    }
+
     public string? Role
     {
         get
         {
-            // Recupere le role de l'utilisateur dans le JWT.
+            // Recupere le role dans le token JWT.
             return _httpContextAccessor.HttpContext?.User
                 .FindFirstValue(ClaimTypes.Role);
         }
@@ -40,7 +55,7 @@ public class CurrentUserService : ICurrentUserService
     {
         get
         {
-            // Indique si la requete contient un token valide.
+            // Verifie si l'utilisateur est authentifie.
             return _httpContextAccessor.HttpContext?.User
                 .Identity?.IsAuthenticated ?? false;
         }
