@@ -5,6 +5,8 @@ using Microsoft.OpenApi;
 using Microsoft.OpenApi.Models;
 using System.Text;
 using SystemePlacement.Web.Data;
+using SystemePlacement.Web.Repositories;
+using SystemePlacement.Web.Repositories.Interfaces;
 using SystemePlacement.Web.Services;
 using SystemePlacement.Web.Services.Interfaces;
 
@@ -13,7 +15,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Controllers API
 builder.Services.AddControllers();
 
-// Swagger pour tester les routes pendant le développement
+// Swagger pour tester les routes pendant le dï¿½veloppement
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSwaggerGen(options =>
@@ -43,7 +45,7 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-// Permet à CurrentUserService de lire l'utilisateur connecté depuis le token JWT
+// Permet ï¿½ CurrentUserService de lire l'utilisateur connectï¿½ depuis le token JWT
 builder.Services.AddHttpContextAccessor();
 
 // Connexion MySQL avec Entity Framework Core
@@ -51,7 +53,7 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 
 if (string.IsNullOrWhiteSpace(connectionString))
 {
-    throw new InvalidOperationException("La chaîne de connexion DefaultConnection est manquante.");
+    throw new InvalidOperationException("La chaï¿½ne de connexion DefaultConnection est manquante.");
 }
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -63,6 +65,10 @@ builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
+// Services Dev 4
+builder.Services.AddScoped<ICandidatureRepository, CandidatureRepository>();
+builder.Services.AddScoped<ICandidatureService, CandidatureService>();
+
 // Configuration JWT
 var jwtKey = builder.Configuration["Jwt:Key"];
 var jwtIssuer = builder.Configuration["Jwt:Issuer"];
@@ -70,7 +76,7 @@ var jwtAudience = builder.Configuration["Jwt:Audience"];
 
 if (string.IsNullOrWhiteSpace(jwtKey))
 {
-    throw new InvalidOperationException("La clé JWT est manquante dans appsettings.json.");
+    throw new InvalidOperationException("La clï¿½ JWT est manquante dans appsettings.json.");
 }
 
 builder.Services.AddAuthentication(options =>
@@ -97,14 +103,14 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
-// Swagger seulement en développement
+// Swagger seulement en dï¿½veloppement
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-// Crée la base et ajoute les rôles de base si nécessaire
+// Crï¿½e la base et ajoute les rï¿½les de base si nï¿½cessaire
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
