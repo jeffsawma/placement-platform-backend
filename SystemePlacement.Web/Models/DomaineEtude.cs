@@ -6,7 +6,7 @@ public class DomaineEtude
     public int IdCollege { get; set; } // Clé étrangère vers College
     public string Nom { get; set; } = string.Empty;
     public string Code { get; set; } = string.Empty;
-    public bool accepteStagiaires { get; set; } = true; // Par défaut, un domaine d'étude accepte les stagiaires
+    public bool AccepteStagiaires { get; set; } = true; // Par défaut, un domaine d'étude accepte les stagiaires
     public bool Actif { get; set; } = true; // Par défaut, un domaine d'étude est actif
 
     // Relations
