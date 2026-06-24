@@ -65,9 +65,23 @@ builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
+
+// Autorise le frontend React local a appeler l'API.
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("FrontendPolicy", policy =>
+    {
+        policy
+            .WithOrigins("http://localhost:5173")
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
 // Services Dev 4
 builder.Services.AddScoped<ICandidatureRepository, CandidatureRepository>();
 builder.Services.AddScoped<ICandidatureService, CandidatureService>();
+
 
 // Configuration JWT
 var jwtKey = builder.Configuration["Jwt:Key"];
@@ -119,7 +133,13 @@ using (var scope = app.Services.CreateScope())
 
 app.UseHttpsRedirection();
 
+
+// Important : CORS avant Authentication/Authorization.
+app.UseCors("FrontendPolicy");
+
+
 // Important : Authentication avant Authorization
+
 app.UseAuthentication();
 app.UseAuthorization();
 

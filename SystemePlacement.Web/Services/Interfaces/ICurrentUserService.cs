@@ -2,12 +2,16 @@
 
 public interface ICurrentUserService
 {
-    // Identifiant de l'utilisateur connecte, extrait du token JWT.
+    // Id de l'utilisateur connecte, lu dans le token JWT.
     int? IdUtilisateur { get; }
 
-    // Role de l'utilisateur connecte, extrait du token JWT.
+    // Id du college de l'utilisateur connecte.
+    // Null pour un SuperAdministrateur.
+    int? IdCollege { get; }
+
+    // Role de l'utilisateur connecte.
     string? Role { get; }
 
-    // Indique rapidement si une requete est authentifiee.
+    // Indique si la requete contient un token valide.
     bool IsAuthenticated { get; }
 }

@@ -22,7 +22,7 @@ public class AuthService : IAuthService
 
     public async Task<LoginResponseDto> LoginAsync(LoginRequestDto request)
     {
-        // Recherche l'utilisateur avec son role.
+        // Recherche l'utilisateur actif avec son role.
         var utilisateur = await _context.Utilisateurs
             .Include(u => u.Role)
             .FirstOrDefaultAsync(u =>
@@ -44,11 +44,19 @@ public class AuthService : IAuthService
             throw new UnauthorizedAccessException("Nom d'utilisateur ou mot de passe invalide.");
         }
 
+        // Met a jour la derniere connexion.
         utilisateur.DerniereConnexion = DateTime.UtcNow;
         await _context.SaveChangesAsync();
 
         var expiration = DateTime.UtcNow.AddHours(8);
-        var token = GenerateJwtToken(utilisateur.IdUtilisateur, utilisateur.NomUtilisateur, utilisateur.Role?.NomRole ?? string.Empty, expiration);
+
+        // Genere un token avec id, nom utilisateur, role et college.
+        var token = GenerateJwtToken(
+            utilisateur.IdUtilisateur,
+            utilisateur.NomUtilisateur,
+            utilisateur.Role?.NomRole ?? string.Empty,
+            utilisateur.IdCollege,
+            expiration);
 
         return new LoginResponseDto
         {
@@ -86,7 +94,12 @@ public class AuthService : IAuthService
             .FirstOrDefaultAsync();
     }
 
-    private string GenerateJwtToken(int idUtilisateur, string nomUtilisateur, string role, DateTime expiration)
+    private string GenerateJwtToken(
+        int idUtilisateur,
+        string nomUtilisateur,
+        string role,
+        int? idCollege,
+        DateTime expiration)
     {
         var secretKey = _configuration["Jwt:Key"];
 
@@ -100,15 +113,21 @@ public class AuthService : IAuthService
 
         var claims = new List<Claim>
         {
-            // Identifiant de l'utilisateur connecte
+            // Id de l'utilisateur connecte.
             new Claim(ClaimTypes.NameIdentifier, idUtilisateur.ToString()),
 
-            // Nom d'utilisateur
+            // Nom d'utilisateur.
             new Claim(ClaimTypes.Name, nomUtilisateur),
 
-            // Role utilise par [Authorize(Roles = "...")]
+            // Role utilise par [Authorize(Roles = "...")].
             new Claim(ClaimTypes.Role, role)
         };
+
+        if (idCollege.HasValue)
+        {
+            // Sert plus tard a filtrer les donnees par college.
+            claims.Add(new Claim("idCollege", idCollege.Value.ToString()));
+        }
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
