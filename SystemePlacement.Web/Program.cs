@@ -1,17 +1,14 @@
+using SystemePlacement.Web.Services;
+using SystemePlacement.Web.Services.Interfaces;
+
 var builder = WebApplication.CreateBuilder(args);
-
-// Add services to the container.
-
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+builder.Services.AddScoped<ICandidatureRepository, CandidatureRepository>();
+builder.Services.AddScoped<ICandidatureService, CandidatureService>();
 builder.Services.AddControllers();
-
 var app = builder.Build();
-
-// Configure the HTTP request pipeline.
-
 app.UseHttpsRedirection();
-
 app.UseAuthorization();
-
 app.MapControllers();
-
 app.Run();
