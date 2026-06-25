@@ -9,7 +9,7 @@ public class DomaineEtudeConfiguration : IEntityTypeConfiguration<DomaineEtude>
 {
     public void Configure(EntityTypeBuilder<DomaineEtude> builder)
     {
-        builder.ToTable("DOMAINE_ETUDE"); 
+        builder.ToTable("domaine_etudes"); 
 
         builder.HasKey(d => d.IdDomaine); 
 
