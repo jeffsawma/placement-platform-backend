@@ -4,6 +4,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using System.Text.Json.Serialization;
 using SystemePlacement.Web.Data;
 using SystemePlacement.Web.Repositories;
 using SystemePlacement.Web.Repositories.Interfaces;
@@ -13,7 +14,9 @@ using SystemePlacement.Web.Services.Interfaces;
 var builder = WebApplication.CreateBuilder(args);
 
 // Controllers API
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
 // Swagger pour tester les routes pendant le d�veloppement
 builder.Services.AddEndpointsApiExplorer();

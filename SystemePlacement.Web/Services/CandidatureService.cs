@@ -64,6 +64,14 @@ public class CandidatureService : ICandidatureService
             Statut = StatutCandidature.EnAttente
         };
 
+        var cvDocument = CreerDocument(request.CvUrl, TypeDocument.CV);
+        if (cvDocument is not null)
+            candidature.Documents.Add(cvDocument);
+
+        var lettreDocument = CreerDocument(request.LettreUrl, TypeDocument.LettreMotivation);
+        if (lettreDocument is not null)
+            candidature.Documents.Add(lettreDocument);
+
         await _repository.AddAsync(candidature);
         await _repository.SaveChangesAsync();
 
@@ -130,6 +138,35 @@ public class CandidatureService : ICandidatureService
         return (contenu, contentType, document.NomFichier);
     }
 
+    private CandidatureDocument? CreerDocument(string? url, TypeDocument type)
+    {
+        if (string.IsNullOrWhiteSpace(url))
+            return null;
+
+        var fichier = Path.GetFileName(url);
+        var nomFichier = fichier.Contains('_') ? fichier[(fichier.IndexOf('_') + 1)..] : fichier;
+        var cheminComplet = Path.Combine(_env.WebRootPath, url.TrimStart('/', '\\'));
+        var taille = File.Exists(cheminComplet) ? new FileInfo(cheminComplet).Length : 0;
+
+        return new CandidatureDocument
+        {
+            TypeDocument = type,
+            CheminFichier = url,
+            NomFichier = nomFichier,
+            ContentType = TypeContenu(Path.GetExtension(nomFichier)),
+            TailleFichier = taille,
+            DateUpload = DateTime.UtcNow
+        };
+    }
+
+    private static string TypeContenu(string extension) => extension.ToLowerInvariant() switch
+    {
+        ".pdf" => "application/pdf",
+        ".doc" => "application/msword",
+        ".docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        _ => "application/octet-stream"
+    };
+
     private static CandidatureResponse Map(Candidature c) => new()
     {
         IdCandidature = c.IdCandidature,
@@ -151,8 +188,8 @@ public class CandidatureService : ICandidatureService
         CourrielEtudiant = c.Etudiant?.Utilisateur?.Courriel,
         Statut = c.Statut,
         DateCandidature = c.DateCandidature,
-        ACV = c.Documents.Any(d => d.TypeDocument == TypeDocument.CV),
-        ALettreMotivation = c.Documents.Any(d => d.TypeDocument == TypeDocument.LettreMotivation)
+        ACV = c.Documents.Any(d => d.TypeDocument == TypeDocument.CV) || !string.IsNullOrWhiteSpace(c.CvUrl),
+        ALettreMotivation = c.Documents.Any(d => d.TypeDocument == TypeDocument.LettreMotivation) || !string.IsNullOrWhiteSpace(c.LettreMotivation)
     };
 
     private static CandidatureDetailResponse MapDetail(Candidature c) => new()
@@ -165,8 +202,8 @@ public class CandidatureService : ICandidatureService
         CourrielEtudiant = c.Etudiant?.Utilisateur?.Courriel,
         Statut = c.Statut,
         DateCandidature = c.DateCandidature,
-        ACV = c.Documents.Any(d => d.TypeDocument == TypeDocument.CV),
-        ALettreMotivation = c.Documents.Any(d => d.TypeDocument == TypeDocument.LettreMotivation),
+        ACV = c.Documents.Any(d => d.TypeDocument == TypeDocument.CV) || !string.IsNullOrWhiteSpace(c.CvUrl),
+        ALettreMotivation = c.Documents.Any(d => d.TypeDocument == TypeDocument.LettreMotivation) || !string.IsNullOrWhiteSpace(c.LettreMotivation),
         MessageMotivation = c.MessageMotivation ?? c.LettreMotivation,
         Documents = c.Documents.Select(d => new DocumentResponse
         {
