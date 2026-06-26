@@ -2,7 +2,7 @@ using SystemePlacement.Web.Enums;
 
 namespace SystemePlacement.Web.Models;
 
-public class Offre
+public abstract class Offre
 {
     public int IdOffre { get; set; }
 
@@ -10,21 +10,23 @@ public class Offre
 
     public string Description { get; set; } = string.Empty;
 
-    public string? Lieu { get; set; }
+    public string Ville { get; set; } = string.Empty;
+
+    public string? Adresse { get; set; }
+
+    public TypeOffre TypeOffre { get; set; }
+
+    public StatutOffre Statut { get; set; } = StatutOffre.Active;
 
     public DateTime DatePublication { get; set; } = DateTime.UtcNow;
 
     public DateTime? DateExpiration { get; set; }
 
-    public StatutOffre Statut { get; set; } = StatutOffre.Brouillon;
+    public int IdEmployeur { get; set; }
 
-    public TypeOffre TypeOffre { get; set; }
+    public Employeur? Employeur { get; set; }
 
-    public int IdEntreprise { get; set; }
-
-    public int? NombrePostes { get; set; }
-
-    public bool? Remunere { get; set; }
+    public ICollection<Candidature> Candidatures { get; set; } = new List<Candidature>();
 
     public ICollection<OffreDomaine> OffreDomaines { get; set; } = new List<OffreDomaine>();
 }

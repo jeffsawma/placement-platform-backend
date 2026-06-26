@@ -12,20 +12,28 @@ public class OffreRepository : IOffreRepository
 
     public OffreRepository(ApplicationDbContext context) => _context = context;
 
-    public Task<List<Offre>> SearchAsync(TypeOffre? type, int? idDomaine, string? lieu, string? motsCles)
+    // ── Lecture ──────────────────────────────────────────────────────────────
+
+    public Task<List<Offre>> GetAllAsync(TypeOffre? type = null, StatutOffre? statut = null, int? idDomaine = null, string? lieu = null, string? motsCles = null)
     {
-        var query = _context.Set<Offre>()
+        IQueryable<Offre> query = _context.Offres
             .AsNoTracking()
-            .Where(o => o.Statut == StatutOffre.Publiee);
+            .Include(o => o.Employeur)
+                .ThenInclude(e => e!.Utilisateur)
+            .Include(o => o.OffreDomaines)
+                .ThenInclude(od => od.DomaineEtude);
 
-        if (type is not null)
-            query = query.Where(o => o.TypeOffre == type);
+        if (type.HasValue)
+            query = query.Where(o => o.TypeOffre == type.Value);
 
-        if (idDomaine is not null)
-            query = query.Where(o => o.OffreDomaines.Any(od => od.IdDomaine == idDomaine));
+        if (statut.HasValue)
+            query = query.Where(o => o.Statut == statut.Value);
+
+        if (idDomaine.HasValue)
+            query = query.Where(o => o.OffreDomaines.Any(od => od.IdDomaine == idDomaine.Value));
 
         if (!string.IsNullOrWhiteSpace(lieu))
-            query = query.Where(o => o.Lieu != null && o.Lieu.Contains(lieu));
+            query = query.Where(o => o.Ville.Contains(lieu) || (o.Adresse != null && o.Adresse.Contains(lieu)));
 
         if (!string.IsNullOrWhiteSpace(motsCles))
             query = query.Where(o => o.Titre.Contains(motsCles) || o.Description.Contains(motsCles));
@@ -35,6 +43,49 @@ public class OffreRepository : IOffreRepository
             .ToListAsync();
     }
 
+    public Task<List<Offre>> GetByEmployeurAsync(int idEmployeur) =>
+        _context.Offres
+            .AsNoTracking()
+            .Include(o => o.OffreDomaines)
+                .ThenInclude(od => od.DomaineEtude)
+            .Where(o => o.IdEmployeur == idEmployeur)
+            .OrderByDescending(o => o.DatePublication)
+            .ToListAsync();
+
     public Task<Offre?> GetByIdAsync(int idOffre) =>
-        _context.Set<Offre>().FirstOrDefaultAsync(o => o.IdOffre == idOffre);
+        _context.Offres
+            .Include(o => o.Employeur)
+                .ThenInclude(e => e!.Utilisateur)
+            .Include(o => o.OffreDomaines)
+                .ThenInclude(od => od.DomaineEtude)
+            .FirstOrDefaultAsync(o => o.IdOffre == idOffre);
+
+    public Task<int?> GetIdEmployeurByUtilisateurAsync(int idUtilisateur) =>
+        _context.Employeurs
+            .Where(e => e.IdUtilisateur == idUtilisateur)
+            .Select(e => (int?)e.IdEmployeur)
+            .FirstOrDefaultAsync();
+
+    // ── Écriture ──────────────────────────────────────────────────────────────
+
+    public async Task AddAsync(Offre offre) => await _context.Offres.AddAsync(offre);
+
+    public void Update(Offre offre) => _context.Offres.Update(offre);
+
+    public void Delete(Offre offre) => _context.Offres.Remove(offre);
+
+    public Task SaveChangesAsync() => _context.SaveChangesAsync();
+
+    // ── Domaines ─────────────────────────────────────────────────────────────
+
+    public Task<List<OffreDomaine>> GetDomainesOffreAsync(int idOffre) =>
+        _context.Set<OffreDomaine>()
+            .Where(od => od.IdOffre == idOffre)
+            .ToListAsync();
+
+    public void RemoveDomaines(IEnumerable<OffreDomaine> domaines) =>
+        _context.Set<OffreDomaine>().RemoveRange(domaines);
+
+    public async Task AddDomainesAsync(IEnumerable<OffreDomaine> domaines) =>
+        await _context.Set<OffreDomaine>().AddRangeAsync(domaines);
 }

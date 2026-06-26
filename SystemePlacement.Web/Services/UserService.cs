@@ -127,6 +127,9 @@ public class UserService : IUserService
         await _context.Utilisateurs.AddAsync(utilisateur);
         await _context.SaveChangesAsync();
 
+        // Cree aussi le profil lie au role : employeur, etudiant, responsable ou admin.
+        await CreateRoleProfileAsync(utilisateur);
+
         var utilisateurCree = await GetByIdAsync(utilisateur.IdUtilisateur);
 
         return utilisateurCree!;
@@ -183,6 +186,59 @@ public class UserService : IUserService
         return true;
     }
 
+    private async Task CreateRoleProfileAsync(Utilisateur utilisateur)
+    {
+        // Un utilisateur avec le role Employeur doit aussi avoir une ligne dans employeurs.
+        // Meme principe pour les autres roles qui ont une table de profil separee.
+        switch ((RoleUtilisateur)utilisateur.IdRole)
+        {
+            case RoleUtilisateur.Employeur:
+                if (!await _context.Employeurs.AnyAsync(e => e.IdUtilisateur == utilisateur.IdUtilisateur))
+                {
+                    await _context.Employeurs.AddAsync(new Employeur
+                    {
+                        IdUtilisateur = utilisateur.IdUtilisateur
+                    });
+                }
+                break;
+
+            case RoleUtilisateur.Etudiant:
+                if (!await _context.Etudiants.AnyAsync(e => e.IdUtilisateur == utilisateur.IdUtilisateur))
+                {
+                    await _context.Etudiants.AddAsync(new Etudiant
+                    {
+                        IdUtilisateur = utilisateur.IdUtilisateur
+                    });
+                }
+                break;
+
+            case RoleUtilisateur.ResponsableStage:
+                if (!await _context.ResponsablesStage.AnyAsync(r => r.IdUtilisateur == utilisateur.IdUtilisateur))
+                {
+                    await _context.ResponsablesStage.AddAsync(new ResponsableStage
+                    {
+                        IdUtilisateur = utilisateur.IdUtilisateur
+                    });
+                }
+                break;
+
+            case RoleUtilisateur.Administrateur:
+            case RoleUtilisateur.SuperAdministrateur:
+                if (!await _context.Administrateurs.AnyAsync(a => a.IdUtilisateur == utilisateur.IdUtilisateur))
+                {
+                    await _context.Administrateurs.AddAsync(new Administrateur
+                    {
+                        IdUtilisateur = utilisateur.IdUtilisateur,
+                        NiveauAcces = utilisateur.IdRole == (int)RoleUtilisateur.SuperAdministrateur
+                            ? "Global"
+                            : "Standard"
+                    });
+                }
+                break;
+        }
+
+        await _context.SaveChangesAsync();
+    }
     private IQueryable<Utilisateur> ApplyCollegeScope(IQueryable<Utilisateur> query)
     {
         // Le SuperAdmin est global : il peut consulter tous les colleges.

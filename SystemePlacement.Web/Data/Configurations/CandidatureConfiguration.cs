@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using SystemePlacement.Web.Enums;
 using SystemePlacement.Web.Models;
 
 namespace SystemePlacement.Web.Data.Configurations;
@@ -8,7 +9,7 @@ public class CandidatureConfiguration : IEntityTypeConfiguration<Candidature>
 {
     public void Configure(EntityTypeBuilder<Candidature> builder)
     {
-        builder.ToTable("CANDIDATURE");
+        builder.ToTable("candidatures");
 
         builder.HasKey(c => c.IdCandidature);
 
@@ -30,18 +31,27 @@ public class CandidatureConfiguration : IEntityTypeConfiguration<Candidature>
         builder.Property(c => c.Statut)
             .HasColumnName("statut")
             .HasConversion<string>()
-            .HasMaxLength(20)
+            .HasMaxLength(30)
+            .HasDefaultValue(StatutCandidature.EnAttente)
             .IsRequired();
 
         builder.Property(c => c.CvUrl)
             .HasColumnName("cv_url")
-            .HasMaxLength(255);
+            .HasMaxLength(500);
 
         builder.Property(c => c.LettreMotivation)
             .HasColumnName("lettre_motivation");
 
+        builder.Property(c => c.MessageMotivation)
+            .HasColumnName("message_motivation");
+
         builder.HasIndex(c => new { c.IdOffre, c.IdEtudiant })
             .IsUnique();
+
+        builder.HasOne(c => c.Offre)
+            .WithMany(o => o.Candidatures)
+            .HasForeignKey(c => c.IdOffre)
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasOne(c => c.Etudiant)
             .WithMany()

@@ -78,10 +78,13 @@ builder.Services.AddCors(options =>
     });
 });
 
-builder.Services.AddScoped<ICandidatureRepository, CandidatureRepository>();
-builder.Services.AddScoped<ICandidatureService, CandidatureService>();
+// Services Dev 3 - Offres
 builder.Services.AddScoped<IOffreRepository, OffreRepository>();
 builder.Services.AddScoped<IOffreService, OffreService>();
+
+// Services Dev 4
+builder.Services.AddScoped<ICandidatureRepository, CandidatureRepository>();
+builder.Services.AddScoped<ICandidatureService, CandidatureService>();
 
 
 // Configuration JWT
