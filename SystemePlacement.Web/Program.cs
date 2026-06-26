@@ -78,6 +78,10 @@ builder.Services.AddCors(options =>
     });
 });
 
+// Services Dev 3 - Offres
+builder.Services.AddScoped<IOffreRepository, OffreRepository>();
+builder.Services.AddScoped<IOffreService, OffreService>();
+
 // Services Dev 4
 builder.Services.AddScoped<ICandidatureRepository, CandidatureRepository>();
 builder.Services.AddScoped<ICandidatureService, CandidatureService>();

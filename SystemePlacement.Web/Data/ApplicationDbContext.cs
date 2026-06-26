@@ -28,8 +28,15 @@ public class ApplicationDbContext : DbContext
 
     public DbSet<DomaineEtude> DomainesEtudes { get; set; }
 
+    // Dev 3 - Offres
+    public DbSet<Offre> Offres { get; set; }
+
+    public DbSet<OffreDomaine> OffreDomaines { get; set; }
+
     // Dev 4 - Candidatures
     public DbSet<Candidature> Candidatures { get; set; }
+
+    public DbSet<CandidatureDocument> CandidatureDocuments { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

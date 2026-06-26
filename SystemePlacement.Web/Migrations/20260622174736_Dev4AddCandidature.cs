@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 
@@ -13,7 +13,7 @@ namespace SystemePlacement.Web.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "CANDIDATURE",
+                name: "candidatures",
                 columns: table => new
                 {
                     id_candidature = table.Column<int>(type: "int", nullable: false)
@@ -30,9 +30,9 @@ namespace SystemePlacement.Web.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_CANDIDATURE", x => x.id_candidature);
+                    table.PrimaryKey("PK_candidatures", x => x.id_candidature);
                     table.ForeignKey(
-                        name: "FK_CANDIDATURE_etudiants_id_etudiant",
+                        name: "FK_candidatures_etudiants_id_etudiant",
                         column: x => x.id_etudiant,
                         principalTable: "etudiants",
                         principalColumn: "id_etudiant",
@@ -41,13 +41,13 @@ namespace SystemePlacement.Web.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateIndex(
-                name: "IX_CANDIDATURE_id_etudiant",
-                table: "CANDIDATURE",
+                name: "IX_candidatures_id_etudiant",
+                table: "candidatures",
                 column: "id_etudiant");
 
             migrationBuilder.CreateIndex(
-                name: "IX_CANDIDATURE_id_offre_id_etudiant",
-                table: "CANDIDATURE",
+                name: "IX_candidatures_id_offre_id_etudiant",
+                table: "candidatures",
                 columns: new[] { "id_offre", "id_etudiant" },
                 unique: true);
         }
@@ -56,7 +56,7 @@ namespace SystemePlacement.Web.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "CANDIDATURE");
+                name: "candidatures");
         }
     }
 }

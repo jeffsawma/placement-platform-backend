@@ -11,10 +11,8 @@ public static class DbInitializer
 
         Console.WriteLine("[Seed] Debut de l'initialisation de la base.");
 
-        // Cree la base si elle n'existe pas.
-        await context.Database.EnsureCreatedAsync();
-
-        // Applique les migrations EF Core si necessaire
+        // Applique les migrations EF Core et cree la base si elle n'existe pas.
+        // Ne pas utiliser EnsureCreatedAsync avec les migrations.
         await context.Database.MigrateAsync();
 
 
@@ -24,8 +22,11 @@ public static class DbInitializer
         // Compte global de la plateforme.
         await SeedSuperAdminAsync(context);
 
+        // College local de test utilise par le compte admin.
+        var idCollegeTest = await SeedCollegeTestAsync(context);
+
         // Compte admin local de test.
-        await SeedAdminAsync(context);
+        await SeedAdminAsync(context, idCollegeTest);
 
         Console.WriteLine("[Seed] Initialisation terminee.");
     }
@@ -91,6 +92,32 @@ public static class DbInitializer
         await context.SaveChangesAsync();
     }
 
+
+    private static async Task<int> SeedCollegeTestAsync(ApplicationDbContext context)
+    {
+        // College minimal pour permettre a l'admin local de creer des utilisateurs.
+        var college = await context.Colleges
+            .FirstOrDefaultAsync(c => c.Nom == "Cegep Gerald-Godin");
+
+        if (college != null)
+        {
+            return college.IdCollege;
+        }
+
+        college = new College
+        {
+            Nom = "Cegep Gerald-Godin",
+            Ville = "Montreal",
+            Actif = true
+        };
+
+        await context.Colleges.AddAsync(college);
+        await context.SaveChangesAsync();
+
+        Console.WriteLine("[Seed] College de test cree : Cegep Gerald-Godin.");
+
+        return college.IdCollege;
+    }
     private static async Task SeedSuperAdminAsync(ApplicationDbContext context)
     {
         // Evite de creer le superadmin plusieurs fois.
@@ -143,14 +170,22 @@ public static class DbInitializer
         Console.WriteLine("[Seed] SuperAdmin cree : superadmin / SuperAdmin123!");
     }
 
-    private static async Task SeedAdminAsync(ApplicationDbContext context)
+    private static async Task SeedAdminAsync(ApplicationDbContext context, int idCollegeTest)
     {
         // Ancien admin local de test.
-        var adminExiste = await context.Utilisateurs
-            .AnyAsync(u => u.NomUtilisateur == "admin");
+        var adminExistant = await context.Utilisateurs
+            .FirstOrDefaultAsync(u => u.NomUtilisateur == "admin");
 
-        if (adminExiste)
+        if (adminExistant != null)
         {
+            // Si l'admin existait deja sans college, on le rattache au college de test.
+            if (adminExistant.IdCollege == null)
+            {
+                adminExistant.IdCollege = idCollegeTest;
+                await context.SaveChangesAsync();
+                Console.WriteLine("[Seed] Admin de test rattache au college Cegep Gerald-Godin.");
+            }
+
             Console.WriteLine("[Seed] Admin de test deja present.");
             return;
         }
@@ -166,8 +201,8 @@ public static class DbInitializer
             Actif = true,
             DateCreation = DateTime.UtcNow,
 
-            // Pour l'instant null tant qu'on n'a pas encore cree le college de test.
-            IdCollege = null,
+            // L'admin local gere les utilisateurs de ce college.
+            IdCollege = idCollegeTest,
 
             IdRole = (int)RoleUtilisateur.Administrateur
         };
