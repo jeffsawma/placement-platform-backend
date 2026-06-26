@@ -6,6 +6,7 @@ public class PostulerRequest
 {
     public int IdOffre { get; set; }
     public string? CvUrl { get; set; }
+    public string? LettreUrl { get; set; }
     public string? LettreMotivation { get; set; }
 }
 
