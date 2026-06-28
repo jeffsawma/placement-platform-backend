@@ -23,15 +23,18 @@ public class ApplicationDbContext : DbContext
 
     public DbSet<ResponsableStage> ResponsablesStage { get; set; }
 
-    // Dev 2 - Param�trage, coll�ges et domaines d'�tudes
+    // Dev 2 - Param�trage, collèges et domaines d'études
     public DbSet<College> Colleges { get; set; }
 
     public DbSet<DomaineEtude> DomainesEtudes { get; set; }
+
 
     // Dev 3 - Offres
     public DbSet<Offre> Offres { get; set; }
 
     public DbSet<OffreDomaine> OffreDomaines { get; set; }
+
+    public DbSet<Entreprise> Entreprises { get; set; }
 
     // Dev 4 - Candidatures
     public DbSet<Candidature> Candidatures { get; set; }
