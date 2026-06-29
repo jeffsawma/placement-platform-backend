@@ -25,6 +25,15 @@ public class CandidatureRepository : ICandidatureRepository
             .OrderByDescending(c => c.DateCandidature)
             .ToListAsync();
 
+    public Task<List<Candidature>> GetByEtudiantAsync(int idEtudiant) =>
+        _context.Candidatures
+            .AsNoTracking()
+            .Include(c => c.Offre)
+            .Include(c => c.Documents)
+            .Where(c => c.IdEtudiant == idEtudiant)
+            .OrderByDescending(c => c.DateCandidature)
+            .ToListAsync();
+
     public Task<Candidature?> GetByIdAsync(int idCandidature) =>
         _context.Candidatures
             .Include(c => c.Offre)
