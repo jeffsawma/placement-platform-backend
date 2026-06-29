@@ -5,6 +5,7 @@ namespace SystemePlacement.Web.Repositories.Interfaces;
 public interface ICandidatureRepository
 {
     Task<List<Candidature>> GetByOffreAsync(int idOffre);
+    Task<List<Candidature>> GetByEtudiantAsync(int idEtudiant);
     Task<Candidature?> GetByIdAsync(int idCandidature);
 
     Task<bool> ExistsAsync(int idOffre, int idEtudiant);

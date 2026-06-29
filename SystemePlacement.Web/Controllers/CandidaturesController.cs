@@ -46,6 +46,11 @@ public class CandidaturesController : ControllerBase
         return detail is null ? NotFound() : Ok(detail);
     }
 
+    // Candidatures de l'etudiant connecte.
+    [HttpGet("mes")]
+    public async Task<IActionResult> MesCandidatures()
+        => Ok(await _service.GetMesCandidaturesAsync());
+
     // Ancienne route : permet a un etudiant de postuler.
     [HttpPost]
     public async Task<IActionResult> Postuler(PostulerRequest request)

@@ -101,6 +101,19 @@ public class CandidatureService : ICandidatureService
         return candidatures.Select(MapResumee).ToList();
     }
 
+    public async Task<IReadOnlyList<CandidatureResumeeResponse>> GetMesCandidaturesAsync()
+    {
+        if (!_currentUser.IdUtilisateur.HasValue)
+            return Array.Empty<CandidatureResumeeResponse>();
+
+        var idEtudiant = await _repository.GetIdEtudiantByUtilisateurAsync(_currentUser.IdUtilisateur.Value);
+        if (idEtudiant is null)
+            return Array.Empty<CandidatureResumeeResponse>();
+
+        var candidatures = await _repository.GetByEtudiantAsync(idEtudiant.Value);
+        return candidatures.Select(MapResumee).ToList();
+    }
+
     public async Task<CandidatureDetailResponse?> GetDetailAsync(int idCandidature)
     {
         var candidature = await _repository.GetByIdAsync(idCandidature);
