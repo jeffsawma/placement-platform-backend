@@ -46,10 +46,26 @@ public class CandidaturesController : ControllerBase
         return detail is null ? NotFound() : Ok(detail);
     }
 
+    // US-11 : liste des candidatures pour un domaine (employeur).
+    [HttpGet("domaine/{idDomaine:int}")]
+    [Authorize(Roles = "Employeur,Administrateur,SuperAdministrateur")]
+    public async Task<IActionResult> GetCandidaturesParDomaine(int idDomaine)
+        => Ok(await _service.GetCandidaturesParDomaineAsync(idDomaine));
+
     // Candidatures de l'etudiant connecte.
     [HttpGet("mes")]
     public async Task<IActionResult> MesCandidatures()
         => Ok(await _service.GetMesCandidaturesAsync());
+
+    // US-13 : l'etudiant met a jour le message de sa candidature.
+    [HttpPut("{idCandidature:int}/mes")]
+    public async Task<IActionResult> MettreAJour(int idCandidature, [FromBody] MettreAJourCandidatureRequest request)
+        => await _service.MettreAJourAsync(idCandidature, request) ? NoContent() : NotFound();
+
+    // US-13 : l'etudiant retire sa candidature.
+    [HttpPost("{idCandidature:int}/retirer")]
+    public async Task<IActionResult> Retirer(int idCandidature)
+        => await _service.RetirerAsync(idCandidature) ? NoContent() : NotFound();
 
     // Ancienne route : permet a un etudiant de postuler.
     [HttpPost]
