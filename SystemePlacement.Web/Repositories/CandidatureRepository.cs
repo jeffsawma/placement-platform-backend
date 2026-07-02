@@ -34,6 +34,17 @@ public class CandidatureRepository : ICandidatureRepository
             .OrderByDescending(c => c.DateCandidature)
             .ToListAsync();
 
+    public Task<List<Candidature>> GetByDomaineAsync(int idDomaine) =>
+        _context.Candidatures
+            .AsNoTracking()
+            .Include(c => c.Offre)
+            .Include(c => c.Etudiant)
+                .ThenInclude(e => e!.Utilisateur)
+            .Include(c => c.Documents)
+            .Where(c => c.Offre!.OffreDomaines.Any(od => od.IdDomaine == idDomaine))
+            .OrderByDescending(c => c.DateCandidature)
+            .ToListAsync();
+
     public Task<Candidature?> GetByIdAsync(int idCandidature) =>
         _context.Candidatures
             .Include(c => c.Offre)

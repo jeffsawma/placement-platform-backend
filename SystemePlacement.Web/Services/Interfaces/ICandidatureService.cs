@@ -12,7 +12,10 @@ public interface ICandidatureService
     Task<bool> ChangerStatutAsync(int idCandidature, ChangerStatutRequest request);
 
     Task<IReadOnlyList<CandidatureResumeeResponse>> GetCandidaturesOffreAsync(int idOffre);
+    Task<IReadOnlyList<CandidatureResumeeResponse>> GetCandidaturesParDomaineAsync(int idDomaine);
     Task<IReadOnlyList<CandidatureResumeeResponse>> GetMesCandidaturesAsync();
+    Task<bool> MettreAJourAsync(int idCandidature, MettreAJourCandidatureRequest request);
+    Task<bool> RetirerAsync(int idCandidature);
     Task<CandidatureDetailResponse?> GetDetailAsync(int idCandidature);
     Task<bool> ChangerStatutAsync(int idCandidature, StatutCandidature statut);
     Task<(byte[] Contenu, string ContentType, string NomFichier)?> TelechargerDocumentAsync(int idDocument);

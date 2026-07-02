@@ -91,6 +91,8 @@ builder.Services.AddScoped<IEntrepriseService, EntrepriseService>();
 // Services Dev 4
 builder.Services.AddScoped<ICandidatureRepository, CandidatureRepository>();
 builder.Services.AddScoped<ICandidatureService, CandidatureService>();
+builder.Services.AddScoped<IDemandeStageRepository, DemandeStageRepository>();
+builder.Services.AddScoped<IDemandeStageService, DemandeStageService>();
 
 
 // Configuration JWT

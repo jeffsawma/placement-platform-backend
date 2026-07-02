@@ -41,6 +41,8 @@ public class ApplicationDbContext : DbContext
 
     public DbSet<CandidatureDocument> CandidatureDocuments { get; set; }
 
+    public DbSet<DemandeStage> DemandesStage { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

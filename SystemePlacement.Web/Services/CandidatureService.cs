@@ -114,6 +114,67 @@ public class CandidatureService : ICandidatureService
         return candidatures.Select(MapResumee).ToList();
     }
 
+    public async Task<bool> MettreAJourAsync(int idCandidature, MettreAJourCandidatureRequest request)
+    {
+        var idEtudiant = await IdEtudiantCourantAsync();
+        if (idEtudiant is null)
+            return false;
+
+        var candidature = await _repository.GetByIdAsync(idCandidature);
+        if (candidature is null || candidature.IdEtudiant != idEtudiant.Value)
+            return false;
+
+        if (candidature.Statut != StatutCandidature.EnAttente)
+            return false;
+
+        candidature.MessageMotivation = request.Message;
+        candidature.LettreMotivation = request.Message;
+
+        _repository.Update(candidature);
+        await _repository.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<bool> RetirerAsync(int idCandidature)
+    {
+        var idEtudiant = await IdEtudiantCourantAsync();
+        if (idEtudiant is null)
+            return false;
+
+        var candidature = await _repository.GetByIdAsync(idCandidature);
+        if (candidature is null || candidature.IdEtudiant != idEtudiant.Value)
+            return false;
+
+        candidature.Statut = StatutCandidature.Retiree;
+        _repository.Update(candidature);
+        await _repository.SaveChangesAsync();
+        return true;
+    }
+
+    private async Task<int?> IdEtudiantCourantAsync()
+    {
+        if (!_currentUser.IdUtilisateur.HasValue)
+            return null;
+
+        return await _repository.GetIdEtudiantByUtilisateurAsync(_currentUser.IdUtilisateur.Value);
+    }
+
+    public async Task<IReadOnlyList<CandidatureResumeeResponse>> GetCandidaturesParDomaineAsync(int idDomaine)
+    {
+        var candidatures = await _repository.GetByDomaineAsync(idDomaine);
+
+        if (_currentUser.Role == "Employeur" && _currentUser.IdUtilisateur.HasValue)
+        {
+            var idEmployeur = await _offreRepository.GetIdEmployeurByUtilisateurAsync(_currentUser.IdUtilisateur.Value);
+            if (idEmployeur is null)
+                return Array.Empty<CandidatureResumeeResponse>();
+
+            candidatures = candidatures.Where(c => c.Offre!.IdEmployeur == idEmployeur.Value).ToList();
+        }
+
+        return candidatures.Select(MapResumee).ToList();
+    }
+
     public async Task<CandidatureDetailResponse?> GetDetailAsync(int idCandidature)
     {
         var candidature = await _repository.GetByIdAsync(idCandidature);

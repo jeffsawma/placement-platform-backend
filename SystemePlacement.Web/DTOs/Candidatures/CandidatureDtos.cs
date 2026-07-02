@@ -15,6 +15,11 @@ public class ChangerStatutRequest
     public StatutCandidature Statut { get; set; }
 }
 
+public class MettreAJourCandidatureRequest
+{
+    public string? Message { get; set; }
+}
+
 public class CandidatureResponse
 {
     public int IdCandidature { get; set; }
