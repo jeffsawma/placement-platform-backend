@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SystemePlacement.Web.Data;
 
@@ -11,9 +12,11 @@ using SystemePlacement.Web.Data;
 namespace SystemePlacement.Web.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260703155614_AjoutChampsEtudiant")]
+    partial class AjoutChampsEtudiant
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -249,46 +252,6 @@ namespace SystemePlacement.Web.Migrations
                     b.HasIndex("IdEtudiant");
 
                     b.ToTable("demandes_stage", (string)null);
-                });
-
-            modelBuilder.Entity("SystemePlacement.Web.Models.DemarcheSuivi", b =>
-                {
-                    b.Property<int>("IdDemarche")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("IdDemarche"));
-
-                    b.Property<DateTime>("DateDemarche")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int?>("EtudiantIdEtudiant")
-                        .HasColumnType("int");
-
-                    b.Property<int>("IdEtudiant")
-                        .HasColumnType("int");
-
-                    b.Property<int>("IdResponsable")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Note")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<int?>("ResponsableIdResponsable")
-                        .HasColumnType("int");
-
-                    b.Property<string>("TypeDemarche")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.HasKey("IdDemarche");
-
-                    b.HasIndex("EtudiantIdEtudiant");
-
-                    b.HasIndex("ResponsableIdResponsable");
-
-                    b.ToTable("DemarchesSuivi");
                 });
 
             modelBuilder.Entity("SystemePlacement.Web.Models.DomaineEtude", b =>
@@ -828,21 +791,6 @@ namespace SystemePlacement.Web.Migrations
                     b.Navigation("DomaineEtude");
 
                     b.Navigation("Etudiant");
-                });
-
-            modelBuilder.Entity("SystemePlacement.Web.Models.DemarcheSuivi", b =>
-                {
-                    b.HasOne("SystemePlacement.Web.Models.Etudiant", "Etudiant")
-                        .WithMany()
-                        .HasForeignKey("EtudiantIdEtudiant");
-
-                    b.HasOne("SystemePlacement.Web.Models.ResponsableStage", "Responsable")
-                        .WithMany()
-                        .HasForeignKey("ResponsableIdResponsable");
-
-                    b.Navigation("Etudiant");
-
-                    b.Navigation("Responsable");
                 });
 
             modelBuilder.Entity("SystemePlacement.Web.Models.DomaineEtude", b =>

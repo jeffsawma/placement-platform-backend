@@ -23,6 +23,8 @@ public class ApplicationDbContext : DbContext
 
     public DbSet<ResponsableStage> ResponsablesStage { get; set; }
 
+    public DbSet<DemarcheSuivi> DemarchesSuivi => Set<DemarcheSuivi>();
+
     // Dev 2 - Param�trage, collèges et domaines d'études
     public DbSet<College> Colleges { get; set; }
 

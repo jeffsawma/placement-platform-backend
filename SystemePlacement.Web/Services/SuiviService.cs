@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using SystemePlacement.Web.Data;
 using SystemePlacement.Web.DTOs.Suivis;
+using SystemePlacement.Web.Models;
 using SystemePlacement.Web.Services.Interfaces;
 
 namespace SystemePlacement.Web.Services;
@@ -18,8 +19,6 @@ public class SuiviService : ISuiviService
 
     public async Task<IReadOnlyList<EtudiantSuiviResponseDto>> GetEtudiantsSuivisAsync()
     {
-        // Le responsable doit etre rattache a un college.
-        // Sans college, il ne peut suivre aucun etudiant.
         if (!_currentUser.IdCollege.HasValue)
         {
             return Array.Empty<EtudiantSuiviResponseDto>();
@@ -27,7 +26,6 @@ public class SuiviService : ISuiviService
 
         var idCollege = _currentUser.IdCollege.Value;
 
-        // On retourne seulement les etudiants actifs du meme college que le responsable.
         return await _context.Etudiants
             .AsNoTracking()
             .Include(e => e.Utilisateur)
@@ -50,18 +48,15 @@ public class SuiviService : ISuiviService
                     ? e.Utilisateur.College.Nom
                     : null,
 
-                // Calcule le nombre total de candidatures de l'etudiant.
                 NombreCandidatures = _context.Candidatures
                     .Count(c => c.IdEtudiant == e.IdEtudiant),
 
-                // Recupere le dernier statut de candidature.
                 DernierStatutCandidature = _context.Candidatures
                     .Where(c => c.IdEtudiant == e.IdEtudiant)
                     .OrderByDescending(c => c.DateCandidature)
                     .Select(c => c.Statut.ToString())
                     .FirstOrDefault(),
 
-                // Recupere la date de la derniere candidature.
                 DateDerniereCandidature = _context.Candidatures
                     .Where(c => c.IdEtudiant == e.IdEtudiant)
                     .OrderByDescending(c => c.DateCandidature)
@@ -69,5 +64,130 @@ public class SuiviService : ISuiviService
                     .FirstOrDefault()
             })
             .ToListAsync();
+    }
+
+    public async Task<EtudiantSuiviDetailResponseDto?> GetEtudiantSuiviDetailAsync(int idEtudiant)
+    {
+        if (!_currentUser.IdCollege.HasValue)
+        {
+            return null;
+        }
+
+        var idCollege = _currentUser.IdCollege.Value;
+
+        var etudiant = await _context.Etudiants
+            .AsNoTracking()
+            .Include(e => e.Utilisateur)
+                .ThenInclude(u => u!.College)
+            .FirstOrDefaultAsync(e =>
+                e.IdEtudiant == idEtudiant &&
+                e.Utilisateur != null &&
+                e.Utilisateur.IdCollege == idCollege &&
+                e.Utilisateur.Actif);
+
+        if (etudiant == null || etudiant.Utilisateur == null)
+        {
+            return null;
+        }
+
+        var candidatures = await _context.Candidatures
+            .AsNoTracking()
+            .Include(c => c.Offre)
+            .Where(c => c.IdEtudiant == idEtudiant)
+            .OrderByDescending(c => c.DateCandidature)
+            .Select(c => new CandidatureSuiviDto
+            {
+                IdCandidature = c.IdCandidature,
+                IdOffre = c.IdOffre,
+                TitreOffre = c.Offre != null ? c.Offre.Titre : string.Empty,
+                TypeOffre = c.Offre != null ? c.Offre.TypeOffre.ToString() : string.Empty,
+                Statut = c.Statut.ToString(),
+                DateCandidature = c.DateCandidature
+            })
+            .ToListAsync();
+
+        var demarches = await _context.DemarchesSuivi
+            .AsNoTracking()
+            .Where(d => d.IdEtudiant == idEtudiant)
+            .OrderByDescending(d => d.DateDemarche)
+            .Select(d => new DemarcheSuiviResponseDto
+            {
+                IdDemarche = d.IdDemarche,
+                IdEtudiant = d.IdEtudiant,
+                IdResponsable = d.IdResponsable,
+                TypeDemarche = d.TypeDemarche,
+                Note = d.Note,
+                DateDemarche = d.DateDemarche
+            })
+            .ToListAsync();
+
+        return new EtudiantSuiviDetailResponseDto
+        {
+            IdEtudiant = etudiant.IdEtudiant,
+            IdUtilisateur = etudiant.IdUtilisateur,
+            Prenom = etudiant.Utilisateur.Prenom,
+            Nom = etudiant.Utilisateur.Nom,
+            Courriel = etudiant.Utilisateur.Courriel,
+            Programme = etudiant.Programme,
+            Telephone = etudiant.Telephone,
+            NomCollege = etudiant.Utilisateur.College?.Nom,
+            Candidatures = candidatures,
+            Demarches = demarches
+        };
+    }
+
+    public async Task<DemarcheSuiviResponseDto?> AjouterDemarcheAsync(
+        int idEtudiant,
+        DemarcheSuiviCreateDto request)
+    {
+        if (!_currentUser.IdCollege.HasValue)
+        {
+            return null;
+        }
+
+        var idCollege = _currentUser.IdCollege.Value;
+
+        var etudiantExiste = await _context.Etudiants
+            .Include(e => e.Utilisateur)
+            .AnyAsync(e =>
+                e.IdEtudiant == idEtudiant &&
+                e.Utilisateur != null &&
+                e.Utilisateur.IdCollege == idCollege &&
+                e.Utilisateur.Actif);
+
+        if (!etudiantExiste)
+        {
+            return null;
+        }
+
+        var responsable = await _context.ResponsablesStage
+            .FirstOrDefaultAsync(r => r.IdUtilisateur == _currentUser.IdUtilisateur);
+
+        if (responsable == null)
+        {
+            return null;
+        }
+
+        var demarche = new DemarcheSuivi
+        {
+            IdEtudiant = idEtudiant,
+            IdResponsable = responsable.IdResponsable,
+            TypeDemarche = request.TypeDemarche,
+            Note = request.Note,
+            DateDemarche = DateTime.UtcNow
+        };
+
+        await _context.DemarchesSuivi.AddAsync(demarche);
+        await _context.SaveChangesAsync();
+
+        return new DemarcheSuiviResponseDto
+        {
+            IdDemarche = demarche.IdDemarche,
+            IdEtudiant = demarche.IdEtudiant,
+            IdResponsable = demarche.IdResponsable,
+            TypeDemarche = demarche.TypeDemarche,
+            Note = demarche.Note,
+            DateDemarche = demarche.DateDemarche
+        };
     }
 }
