@@ -81,6 +81,7 @@ builder.Services.AddCors(options =>
 // Services Dev 4
 builder.Services.AddScoped<ICandidatureRepository, CandidatureRepository>();
 builder.Services.AddScoped<ICandidatureService, CandidatureService>();
+builder.Services.AddScoped<ISuiviService, SuiviService>();
 
 
 // Configuration JWT
