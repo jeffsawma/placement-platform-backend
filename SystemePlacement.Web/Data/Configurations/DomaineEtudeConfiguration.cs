@@ -9,7 +9,7 @@ public class DomaineEtudeConfiguration : IEntityTypeConfiguration<DomaineEtude>
 {
     public void Configure(EntityTypeBuilder<DomaineEtude> builder)
     {
-        builder.ToTable("DOMAINE_ETUDE"); 
+        builder.ToTable("domaine_etudes"); 
 
         builder.HasKey(d => d.IdDomaine); 
 
@@ -30,7 +30,7 @@ public class DomaineEtudeConfiguration : IEntityTypeConfiguration<DomaineEtude>
             .HasMaxLength(20)
             .IsRequired();
 
-        builder.Property(d => d.accepteStagiaires)
+        builder.Property(d => d.AccepteStagiaires)
             .HasColumnName("accepte_stagiaires")
             .IsRequired();
 

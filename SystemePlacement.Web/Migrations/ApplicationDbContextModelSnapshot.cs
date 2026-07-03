@@ -61,8 +61,8 @@ namespace SystemePlacement.Web.Migrations
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("IdCandidature"));
 
                     b.Property<string>("CvUrl")
-                        .HasMaxLength(255)
-                        .HasColumnType("varchar(255)")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)")
                         .HasColumnName("cv_url");
 
                     b.Property<DateTime>("DateCandidature")
@@ -81,10 +81,16 @@ namespace SystemePlacement.Web.Migrations
                         .HasColumnType("longtext")
                         .HasColumnName("lettre_motivation");
 
+                    b.Property<string>("MessageMotivation")
+                        .HasColumnType("longtext")
+                        .HasColumnName("message_motivation");
+
                     b.Property<string>("Statut")
                         .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("varchar(20)")
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(30)
+                        .HasColumnType("varchar(30)")
+                        .HasDefaultValue("EnAttente")
                         .HasColumnName("statut");
 
                     b.HasKey("IdCandidature");
@@ -94,7 +100,58 @@ namespace SystemePlacement.Web.Migrations
                     b.HasIndex("IdOffre", "IdEtudiant")
                         .IsUnique();
 
-                    b.ToTable("CANDIDATURE", (string)null);
+                    b.ToTable("candidatures", (string)null);
+                });
+
+            modelBuilder.Entity("SystemePlacement.Web.Models.CandidatureDocument", b =>
+                {
+                    b.Property<int>("IdDocument")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id_document");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("IdDocument"));
+
+                    b.Property<string>("CheminFichier")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)")
+                        .HasColumnName("chemin_fichier");
+
+                    b.Property<string>("ContentType")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("content_type");
+
+                    b.Property<DateTime>("DateUpload")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("date_upload");
+
+                    b.Property<int>("IdCandidature")
+                        .HasColumnType("int")
+                        .HasColumnName("id_candidature");
+
+                    b.Property<string>("NomFichier")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("nom_fichier");
+
+                    b.Property<long>("TailleFichier")
+                        .HasColumnType("bigint")
+                        .HasColumnName("taille_fichier");
+
+                    b.Property<string>("TypeDocument")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("varchar(30)")
+                        .HasColumnName("type_document");
+
+                    b.HasKey("IdDocument");
+
+                    b.HasIndex("IdCandidature");
+
+                    b.ToTable("candidature_documents", (string)null);
                 });
 
             modelBuilder.Entity("SystemePlacement.Web.Models.College", b =>
@@ -129,7 +186,59 @@ namespace SystemePlacement.Web.Migrations
                     b.HasIndex("Nom")
                         .IsUnique();
 
-                    b.ToTable("COLLEGE", (string)null);
+                    b.ToTable("colleges", (string)null);
+                });
+
+            modelBuilder.Entity("SystemePlacement.Web.Models.DemandeStage", b =>
+                {
+                    b.Property<int>("IdDemandeStage")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id_demande_stage");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("IdDemandeStage"));
+
+                    b.Property<string>("Competences")
+                        .HasColumnType("longtext")
+                        .HasColumnName("competences");
+
+                    b.Property<DateTime>("DateCreation")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("date_creation");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("longtext")
+                        .HasColumnName("description");
+
+                    b.Property<int>("IdDomaine")
+                        .HasColumnType("int")
+                        .HasColumnName("id_domaine");
+
+                    b.Property<int>("IdEtudiant")
+                        .HasColumnType("int")
+                        .HasColumnName("id_etudiant");
+
+                    b.Property<string>("PeriodeSouhaitee")
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)")
+                        .HasColumnName("periode_souhaitee");
+
+                    b.Property<string>("Statut")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(30)
+                        .HasColumnType("varchar(30)")
+                        .HasDefaultValue("Ouverte")
+                        .HasColumnName("statut");
+
+                    b.HasKey("IdDemandeStage");
+
+                    b.HasIndex("IdDomaine");
+
+                    b.HasIndex("IdEtudiant");
+
+                    b.ToTable("demandes_stage", (string)null);
                 });
 
             modelBuilder.Entity("SystemePlacement.Web.Models.DomaineEtude", b =>
@@ -140,6 +249,10 @@ namespace SystemePlacement.Web.Migrations
                         .HasColumnName("id_domaine");
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("IdDomaine"));
+
+                    b.Property<bool>("AccepteStagiaires")
+                        .HasColumnType("tinyint(1)")
+                        .HasColumnName("accepte_stagiaires");
 
                     b.Property<bool>("Actif")
                         .HasColumnType("tinyint(1)")
@@ -161,15 +274,11 @@ namespace SystemePlacement.Web.Migrations
                         .HasColumnType("varchar(150)")
                         .HasColumnName("nom");
 
-                    b.Property<bool>("accepteStagiaires")
-                        .HasColumnType("tinyint(1)")
-                        .HasColumnName("accepte_stagiaires");
-
                     b.HasKey("IdDomaine");
 
                     b.HasIndex("IdCollege");
 
-                    b.ToTable("DOMAINE_ETUDE", (string)null);
+                    b.ToTable("domaine_etudes", (string)null);
                 });
 
             modelBuilder.Entity("SystemePlacement.Web.Models.Employeur", b =>
@@ -185,12 +294,94 @@ namespace SystemePlacement.Web.Migrations
                         .HasColumnType("int")
                         .HasColumnName("id_utilisateur");
 
+                    b.Property<string>("LogoUrl")
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("logo_url");
+
+                    b.Property<string>("Poste")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)")
+                        .HasDefaultValue("")
+                        .HasColumnName("poste");
+
+                    b.Property<string>("Telephone")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)")
+                        .HasDefaultValue("")
+                        .HasColumnName("telephone");
+
+                    b.Property<string>("Titre")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(150)
+                        .HasColumnType("varchar(150)")
+                        .HasDefaultValue("")
+                        .HasColumnName("titre");
+
                     b.HasKey("IdEmployeur");
 
                     b.HasIndex("IdUtilisateur")
                         .IsUnique();
 
                     b.ToTable("employeurs", (string)null);
+                });
+
+            modelBuilder.Entity("SystemePlacement.Web.Models.Entreprise", b =>
+                {
+                    b.Property<int>("IdEntreprise")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id_entreprise");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("IdEntreprise"));
+
+                    b.Property<string>("Adresse")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("adresse");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("description");
+
+                    b.Property<int>("IdEmployeur")
+                        .HasColumnType("int")
+                        .HasColumnName("id_employeur");
+
+                    b.Property<string>("LogoUrl")
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("logo_url");
+
+                    b.Property<string>("Nom")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("varchar(150)")
+                        .HasColumnName("nom");
+
+                    b.Property<string>("Secteur")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("secteur");
+
+                    b.Property<string>("SiteWeb")
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("site_web");
+
+                    b.HasKey("IdEntreprise");
+
+                    b.HasIndex("IdEmployeur")
+                        .IsUnique();
+
+                    b.ToTable("entreprises", (string)null);
                 });
 
             modelBuilder.Entity("SystemePlacement.Web.Models.Etudiant", b =>
@@ -212,6 +403,95 @@ namespace SystemePlacement.Web.Migrations
                         .IsUnique();
 
                     b.ToTable("etudiants", (string)null);
+                });
+
+            modelBuilder.Entity("SystemePlacement.Web.Models.Offre", b =>
+                {
+                    b.Property<int>("IdOffre")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id_offre");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("IdOffre"));
+
+                    b.Property<string>("Adresse")
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("adresse");
+
+                    b.Property<DateTime?>("DateExpiration")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("date_expiration");
+
+                    b.Property<DateTime>("DatePublication")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("date_publication");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("longtext")
+                        .HasColumnName("description");
+
+                    b.Property<int>("IdEmployeur")
+                        .HasColumnType("int")
+                        .HasColumnName("id_employeur");
+
+                    b.Property<string>("Statut")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)")
+                        .HasDefaultValue("Active")
+                        .HasColumnName("statut");
+
+                    b.Property<string>("Titre")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)")
+                        .HasColumnName("titre");
+
+                    b.Property<string>("TypeOffre")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("type_offre");
+
+                    b.Property<string>("Ville")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("ville");
+
+                    b.HasKey("IdOffre");
+
+                    b.HasIndex("IdEmployeur")
+                        .HasDatabaseName("idx_offre_employeur");
+
+                    b.HasIndex("Statut")
+                        .HasDatabaseName("idx_offre_statut");
+
+                    b.ToTable("offres", (string)null);
+
+                    b.HasDiscriminator<string>("TypeOffre");
+
+                    b.UseTphMappingStrategy();
+                });
+
+            modelBuilder.Entity("SystemePlacement.Web.Models.OffreDomaine", b =>
+                {
+                    b.Property<int>("IdOffre")
+                        .HasColumnType("int")
+                        .HasColumnName("id_offre");
+
+                    b.Property<int>("IdDomaine")
+                        .HasColumnType("int")
+                        .HasColumnName("id_domaine");
+
+                    b.HasKey("IdOffre", "IdDomaine");
+
+                    b.HasIndex("IdDomaine");
+
+                    b.ToTable("offre_domaines", (string)null);
                 });
 
             modelBuilder.Entity("SystemePlacement.Web.Models.ResponsableStage", b =>
@@ -357,6 +637,62 @@ namespace SystemePlacement.Web.Migrations
                     b.ToTable("utilisateurs", (string)null);
                 });
 
+            modelBuilder.Entity("SystemePlacement.Web.Models.OffreEmploi", b =>
+                {
+                    b.HasBaseType("SystemePlacement.Web.Models.Offre");
+
+                    b.Property<decimal?>("SalaireMax")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("decimal(10,2)")
+                        .HasColumnName("salaire_max");
+
+                    b.Property<decimal?>("SalaireMin")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("decimal(10,2)")
+                        .HasColumnName("salaire_min");
+
+                    b.Property<string>("TeleTravail")
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("tele_travail");
+
+                    b.Property<string>("TypeContrat")
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("type_contrat");
+
+                    b.HasDiscriminator().HasValue("Emploi");
+                });
+
+            modelBuilder.Entity("SystemePlacement.Web.Models.OffreStage", b =>
+                {
+                    b.HasBaseType("SystemePlacement.Web.Models.Offre");
+
+                    b.Property<DateTime?>("DateDebutStage")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("date_debut_stage");
+
+                    b.Property<DateTime?>("DateFinStage")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("date_fin_stage");
+
+                    b.Property<int?>("DureeHeuresParSemaine")
+                        .HasColumnType("int")
+                        .HasColumnName("duree_heures_semaine");
+
+                    b.Property<decimal?>("Remuneration")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("decimal(10,2)")
+                        .HasColumnName("remuneration");
+
+                    b.Property<string>("Session")
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("session");
+
+                    b.HasDiscriminator().HasValue("Stage");
+                });
+
             modelBuilder.Entity("SystemePlacement.Web.Models.Administrateur", b =>
                 {
                     b.HasOne("SystemePlacement.Web.Models.Utilisateur", "Utilisateur")
@@ -375,6 +711,44 @@ namespace SystemePlacement.Web.Migrations
                         .HasForeignKey("IdEtudiant")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.HasOne("SystemePlacement.Web.Models.Offre", "Offre")
+                        .WithMany("Candidatures")
+                        .HasForeignKey("IdOffre")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Etudiant");
+
+                    b.Navigation("Offre");
+                });
+
+            modelBuilder.Entity("SystemePlacement.Web.Models.CandidatureDocument", b =>
+                {
+                    b.HasOne("SystemePlacement.Web.Models.Candidature", "Candidature")
+                        .WithMany("Documents")
+                        .HasForeignKey("IdCandidature")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Candidature");
+                });
+
+            modelBuilder.Entity("SystemePlacement.Web.Models.DemandeStage", b =>
+                {
+                    b.HasOne("SystemePlacement.Web.Models.DomaineEtude", "DomaineEtude")
+                        .WithMany()
+                        .HasForeignKey("IdDomaine")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SystemePlacement.Web.Models.Etudiant", "Etudiant")
+                        .WithMany()
+                        .HasForeignKey("IdEtudiant")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("DomaineEtude");
 
                     b.Navigation("Etudiant");
                 });
@@ -401,6 +775,17 @@ namespace SystemePlacement.Web.Migrations
                     b.Navigation("Utilisateur");
                 });
 
+            modelBuilder.Entity("SystemePlacement.Web.Models.Entreprise", b =>
+                {
+                    b.HasOne("SystemePlacement.Web.Models.Employeur", "Employeur")
+                        .WithOne("Entreprise")
+                        .HasForeignKey("SystemePlacement.Web.Models.Entreprise", "IdEmployeur")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Employeur");
+                });
+
             modelBuilder.Entity("SystemePlacement.Web.Models.Etudiant", b =>
                 {
                     b.HasOne("SystemePlacement.Web.Models.Utilisateur", "Utilisateur")
@@ -410,6 +795,36 @@ namespace SystemePlacement.Web.Migrations
                         .IsRequired();
 
                     b.Navigation("Utilisateur");
+                });
+
+            modelBuilder.Entity("SystemePlacement.Web.Models.Offre", b =>
+                {
+                    b.HasOne("SystemePlacement.Web.Models.Employeur", "Employeur")
+                        .WithMany()
+                        .HasForeignKey("IdEmployeur")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Employeur");
+                });
+
+            modelBuilder.Entity("SystemePlacement.Web.Models.OffreDomaine", b =>
+                {
+                    b.HasOne("SystemePlacement.Web.Models.DomaineEtude", "DomaineEtude")
+                        .WithMany()
+                        .HasForeignKey("IdDomaine")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SystemePlacement.Web.Models.Offre", "Offre")
+                        .WithMany("OffreDomaines")
+                        .HasForeignKey("IdOffre")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("DomaineEtude");
+
+                    b.Navigation("Offre");
                 });
 
             modelBuilder.Entity("SystemePlacement.Web.Models.ResponsableStage", b =>
@@ -441,11 +856,28 @@ namespace SystemePlacement.Web.Migrations
                     b.Navigation("Role");
                 });
 
+            modelBuilder.Entity("SystemePlacement.Web.Models.Candidature", b =>
+                {
+                    b.Navigation("Documents");
+                });
+
             modelBuilder.Entity("SystemePlacement.Web.Models.College", b =>
                 {
                     b.Navigation("DomaineEtudes");
 
                     b.Navigation("Utilisateurs");
+                });
+
+            modelBuilder.Entity("SystemePlacement.Web.Models.Employeur", b =>
+                {
+                    b.Navigation("Entreprise");
+                });
+
+            modelBuilder.Entity("SystemePlacement.Web.Models.Offre", b =>
+                {
+                    b.Navigation("Candidatures");
+
+                    b.Navigation("OffreDomaines");
                 });
 
             modelBuilder.Entity("SystemePlacement.Web.Models.Role", b =>

@@ -8,7 +8,7 @@ public class CollegeConfiguration : IEntityTypeConfiguration<College>
 {
     public void Configure(EntityTypeBuilder<College> builder)
     {
-        builder.ToTable("COLLEGE");
+        builder.ToTable("colleges");
 
         builder.HasKey(c => c.IdCollege);
 

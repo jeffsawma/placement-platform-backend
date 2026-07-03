@@ -8,7 +8,7 @@ public class EmployeurConfiguration : IEntityTypeConfiguration<Employeur>
 {
     public void Configure(EntityTypeBuilder<Employeur> builder)
     {
-        // Profil minimal pour un utilisateur employeur
+        // Profil employeur lié à un utilisateur modifié
         builder.ToTable("employeurs");
 
         builder.HasKey(e => e.IdEmployeur);
@@ -17,12 +17,41 @@ public class EmployeurConfiguration : IEntityTypeConfiguration<Employeur>
             .HasColumnName("id_employeur");
 
         builder.Property(e => e.IdUtilisateur)
-            .HasColumnName("id_utilisateur");
+            .HasColumnName("id_utilisateur")
+            .IsRequired();
+
+        builder.Property(e => e.Poste)
+            .HasColumnName("poste")
+            .HasMaxLength(100)
+            .HasDefaultValue("")
+            .IsRequired();
+
+        builder.Property(e => e.Telephone)
+            .HasColumnName("telephone")
+            .HasMaxLength(20)
+            .HasDefaultValue("")
+            .IsRequired();
+
+        builder.Property(e => e.LogoUrl)
+            .HasColumnName("logo_url")
+            .HasMaxLength(255);
+
+        builder.Property(e => e.Titre)
+            .HasColumnName("titre")
+            .HasMaxLength(150)
+            .HasDefaultValue("")
+            .IsRequired();
 
         // Un utilisateur peut avoir un seul profil employeur
         builder.HasOne(e => e.Utilisateur)
             .WithOne(u => u.Employeur)
             .HasForeignKey<Employeur>(e => e.IdUtilisateur)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Un employeur peut avoir un seul profil d'entreprise
+        builder.HasOne(e => e.Entreprise)
+            .WithOne(e => e.Employeur)
+            .HasForeignKey<Entreprise>(e => e.IdEmployeur)
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasIndex(e => e.IdUtilisateur)
