@@ -89,7 +89,7 @@ public class CandidaturesController : ControllerBase
         int idCandidature,
         [FromBody] ChangerStatutCandidatureRequest request)
     {
-        var succes = await _service.ChangerStatutAsync(idCandidature, request.Statut);
+        var succes = await _service.ChangerStatutAsync(idCandidature, request.Statut, request.Message);
         return succes ? NoContent() : NotFound();
     }
 

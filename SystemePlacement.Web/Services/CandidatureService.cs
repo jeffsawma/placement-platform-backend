@@ -80,7 +80,24 @@ public class CandidatureService : ICandidatureService
 
     public async Task<bool> ChangerStatutAsync(int idCandidature, ChangerStatutRequest request)
     {
-        return await ChangerStatutAsync(idCandidature, request.Statut);
+        return await ChangerStatutAsync(idCandidature, request.Statut, null); // null pour le message, car il n'est pas fourni dans cette surcharge
+    }
+
+    // Cette surcharge permet de modifier le statut et, éventuellement, de fournir un message
+    public async Task<bool> ChangerStatutAsync(int idCandidature, StatutCandidature statut, string? message = null)
+    {
+        var candidature = await _repository.GetByIdAsync(idCandidature);
+        if (candidature is null)
+            return false;
+
+        candidature.Statut = statut;
+        candidature.MessageReponseEmployeur = message;
+        candidature.DateReponseEmployeur = DateTime.UtcNow;
+
+        _repository.Update(candidature);
+        await _repository.SaveChangesAsync();
+
+        return true;
     }
 
     public async Task<IReadOnlyList<CandidatureResumeeResponse>> GetCandidaturesOffreAsync(int idOffre)
@@ -249,7 +266,10 @@ public class CandidatureService : ICandidatureService
         DateCandidature = c.DateCandidature,
         Statut = c.Statut,
         CvUrl = c.CvUrl,
-        LettreMotivation = c.LettreMotivation
+        LettreMotivation = c.LettreMotivation,
+        MessageMotivation = c.MessageMotivation,
+        MessageReponseEmployeur = c.MessageReponseEmployeur,
+        DateReponseEmployeur = c.DateReponseEmployeur
     };
 
     private static CandidatureResumeeResponse MapResumee(Candidature c) => new()
@@ -262,6 +282,8 @@ public class CandidatureService : ICandidatureService
         CourrielEtudiant = c.Etudiant?.Utilisateur?.Courriel,
         Statut = c.Statut,
         DateCandidature = c.DateCandidature,
+        MessageReponseEmployeur = c.MessageReponseEmployeur,
+        DateReponseEmployeur = c.DateReponseEmployeur,
         ACV = c.Documents.Any(d => d.TypeDocument == TypeDocument.CV) || !string.IsNullOrWhiteSpace(c.CvUrl),
         ALettreMotivation = c.Documents.Any(d => d.TypeDocument == TypeDocument.LettreMotivation) || !string.IsNullOrWhiteSpace(c.LettreMotivation)
     };
@@ -276,6 +298,8 @@ public class CandidatureService : ICandidatureService
         CourrielEtudiant = c.Etudiant?.Utilisateur?.Courriel,
         Statut = c.Statut,
         DateCandidature = c.DateCandidature,
+        MessageReponseEmployeur = c.MessageReponseEmployeur,
+        DateReponseEmployeur = c.DateReponseEmployeur,
         ACV = c.Documents.Any(d => d.TypeDocument == TypeDocument.CV) || !string.IsNullOrWhiteSpace(c.CvUrl),
         ALettreMotivation = c.Documents.Any(d => d.TypeDocument == TypeDocument.LettreMotivation) || !string.IsNullOrWhiteSpace(c.LettreMotivation),
         MessageMotivation = c.MessageMotivation ?? c.LettreMotivation,

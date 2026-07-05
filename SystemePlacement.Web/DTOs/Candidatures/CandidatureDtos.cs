@@ -29,6 +29,9 @@ public class CandidatureResponse
     public StatutCandidature Statut { get; set; }
     public string? CvUrl { get; set; }
     public string? LettreMotivation { get; set; }
+    public string? MessageMotivation { get; set; }
+    public string? MessageReponseEmployeur { get; set; }
+    public DateTime? DateReponseEmployeur { get; set; }
 }
 
 public class CandidatureResumeeResponse
@@ -41,6 +44,8 @@ public class CandidatureResumeeResponse
     public string? CourrielEtudiant { get; set; }
     public StatutCandidature Statut { get; set; }
     public DateTime DateCandidature { get; set; }
+    public string? MessageReponseEmployeur { get; set; }
+    public DateTime? DateReponseEmployeur { get; set; }
     public bool ACV { get; set; }
     public bool ALettreMotivation { get; set; }
 }
@@ -63,4 +68,5 @@ public class DocumentResponse
 public class ChangerStatutCandidatureRequest
 {
     public StatutCandidature Statut { get; set; }
+    public string? Message { get; set; }
 }
