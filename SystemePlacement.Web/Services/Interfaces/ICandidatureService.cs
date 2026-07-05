@@ -17,6 +17,6 @@ public interface ICandidatureService
     Task<bool> MettreAJourAsync(int idCandidature, MettreAJourCandidatureRequest request);
     Task<bool> RetirerAsync(int idCandidature);
     Task<CandidatureDetailResponse?> GetDetailAsync(int idCandidature);
-    Task<bool> ChangerStatutAsync(int idCandidature, StatutCandidature statut);
+    Task<bool> ChangerStatutAsync(int idCandidature, StatutCandidature statut, string? message = null);
     Task<(byte[] Contenu, string ContentType, string NomFichier)?> TelechargerDocumentAsync(int idDocument);
 }
