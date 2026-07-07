@@ -81,12 +81,15 @@ builder.Services.AddCors(options =>
     });
 });
 
+// Services Dev 2 - Entreprises
+builder.Services.AddScoped<IEntrepriseService, EntrepriseService>();
+// Services Dev 2 - Offres de stage directes
+builder.Services.AddScoped<IOffreStageDirecteRepository, OffreStageDirecteRepository>();
+builder.Services.AddScoped<IOffreStageDirecteService, OffreStageDirecteService>();
+
 // Services Dev 3 - Offres
 builder.Services.AddScoped<IOffreRepository, OffreRepository>();
 builder.Services.AddScoped<IOffreService, OffreService>();
-
-// Services Dev 2 - Entreprises
-builder.Services.AddScoped<IEntrepriseService, EntrepriseService>();
 
 // Services Dev 4
 builder.Services.AddScoped<ICandidatureRepository, CandidatureRepository>();
@@ -96,7 +99,6 @@ builder.Services.AddScoped<ISuiviService, SuiviService>();
 
 builder.Services.AddScoped<IDemandeStageRepository, DemandeStageRepository>();
 builder.Services.AddScoped<IDemandeStageService, DemandeStageService>();
-
 
 
 // Configuration JWT

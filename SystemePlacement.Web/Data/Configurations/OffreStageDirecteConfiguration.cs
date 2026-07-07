@@ -34,7 +34,7 @@ public class OffreStageDirecteConfiguration : IEntityTypeConfiguration<OffreStag
             .HasColumnName("id_demande_stage");
 
         builder.Property(o => o.Conditions)
-            .HasColumnName("condtions")
+            .HasColumnName("conditions")
             .HasColumnType("TEXT")
             .IsRequired();
 
