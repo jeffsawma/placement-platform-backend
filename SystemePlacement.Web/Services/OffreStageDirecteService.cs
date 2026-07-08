@@ -79,6 +79,44 @@ public class OffreStageDirecteService : IOffreStageDirecteService
         return saved is null ? Map(offre) : Map(saved);
     }
 
+    public async Task<IReadOnlyList<OffreStageDirecteReponse>> GetMesOffresRecuesAsync()
+    {
+        var idEtudiant = await GetIdEtudiantCourantAsync();
+        if (idEtudiant is null)
+            return Array.Empty<OffreStageDirecteReponse>();
+
+        var offres = await _repository.GetByEtudiantAsync(idEtudiant.Value);
+        return offres.Select(Map).ToList();
+    }
+
+    public async Task<bool> RepondreAsync(int idOffreDirecte, RepondreOffreDirecteRequest request)
+    {
+        var idEtudiant = await GetIdEtudiantCourantAsync();
+        if (idEtudiant is null)
+            return false;
+
+        var offre = await _repository.GetByIdAsync(idOffreDirecte);
+        if (offre is null || offre.IdEtudiant != idEtudiant.Value)
+            return false;
+
+        if (offre.Statut != StatutOffreStageDirecte.Envoyee)
+            return false;
+
+        offre.Statut = request.Accepte ? StatutOffreStageDirecte.Acceptee : StatutOffreStageDirecte.Refusee;
+        offre.ReponseEtudiant = request.Reponse;
+
+        await _repository.SaveChangesAsync();
+        return true;
+    }
+
+    private async Task<int?> GetIdEtudiantCourantAsync()
+    {
+        if (!_currentUser.IdUtilisateur.HasValue)
+            return null;
+
+        return await _repository.GetIdEtudiantByUtilisateurAsync(_currentUser.IdUtilisateur.Value);
+    }
+
     private async Task<int?> GetIdEmployeurCourantAsync()
     {
         if (!_currentUser.IdUtilisateur.HasValue)
@@ -107,6 +145,7 @@ public class OffreStageDirecteService : IOffreStageDirecteService
         DateProposition = offre.DateProposition,
 
         Statut = offre.Statut,
-        Commentaire = offre.Commentaire
+        Commentaire = offre.Commentaire,
+        ReponseEtudiant = offre.ReponseEtudiant
     };
 }

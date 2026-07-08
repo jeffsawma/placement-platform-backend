@@ -38,5 +38,12 @@ namespace SystemePlacement.Web.DTOs.OffresStageDirectes
 
         public StatutOffreStageDirecte Statut { get; set; }
         public string? Commentaire { get; set; }
+        public string? ReponseEtudiant { get; set; }
+    }
+
+    public class RepondreOffreDirecteRequest
+    {
+        public bool Accepte { get; set; }
+        public string? Reponse { get; set; }
     }
 }

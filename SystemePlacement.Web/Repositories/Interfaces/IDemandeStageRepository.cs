@@ -7,5 +7,6 @@ public interface IDemandeStageRepository
     Task<int?> GetIdEtudiantByUtilisateurAsync(int idUtilisateur);
     Task AddAsync(DemandeStage demande);
     Task<List<DemandeStage>> GetByEtudiantAsync(int idEtudiant);
+    Task<List<DemandeStage>> GetByDomaineAsync(int idDomaine);
     Task SaveChangesAsync();
 }
