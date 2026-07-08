@@ -19,4 +19,6 @@ public interface ICandidatureService
     Task<CandidatureDetailResponse?> GetDetailAsync(int idCandidature);
     Task<bool> ChangerStatutAsync(int idCandidature, StatutCandidature statut, string? message = null);
     Task<(byte[] Contenu, string ContentType, string NomFichier)?> TelechargerDocumentAsync(int idDocument);
+    Task<bool> ConfirmerEmploiAsync(int idCandidature, string? message = null);
 }
+
