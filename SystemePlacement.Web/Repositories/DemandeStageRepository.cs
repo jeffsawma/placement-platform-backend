@@ -31,5 +31,15 @@ public class DemandeStageRepository : IDemandeStageRepository
             .OrderByDescending(d => d.DateCreation)
             .ToListAsync();
 
+    public Task<List<DemandeStage>> GetByDomaineAsync(int idDomaine) =>
+        _context.DemandesStage
+            .AsNoTracking()
+            .Include(d => d.DomaineEtude)
+            .Include(d => d.Etudiant)
+                .ThenInclude(e => e!.Utilisateur)
+            .Where(d => d.IdDomaine == idDomaine)
+            .OrderByDescending(d => d.DateCreation)
+            .ToListAsync();
+
     public Task SaveChangesAsync() => _context.SaveChangesAsync();
 }
