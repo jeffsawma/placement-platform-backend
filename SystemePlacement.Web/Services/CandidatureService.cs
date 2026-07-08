@@ -100,6 +100,41 @@ public class CandidatureService : ICandidatureService
         return true;
     }
 
+    public async Task<bool> ConfirmerEmploiAsync(int idCandidature, string? message = null)
+    {
+        var candidature = await _repository.GetByIdAsync(idCandidature);
+
+        if (candidature is null || candidature.Offre is null)
+            return false;
+
+        // US-16 concerne uniquement les offres d'emploi
+        if (candidature.Offre is not OffreEmploi)
+            return false;
+
+        if (_currentUser.Role == "Employeur")
+        {
+            if (!_currentUser.IdUtilisateur.HasValue)
+                return false;
+
+            var idEmployeur = await _offreRepository.GetIdEmployeurByUtilisateurAsync(_currentUser.IdUtilisateur.Value);
+
+            if (idEmployeur is null || candidature.Offre.IdEmployeur != idEmployeur.Value)
+                return false;
+        }
+
+        candidature.Statut = StatutCandidature.Acceptee; // Changer le statut de la candidature à "Acceptée"
+        candidature.MessageReponseEmployeur = string.IsNullOrWhiteSpace(message)
+            ? "Emploi confirmé par l'employeur."
+            : message;
+
+        candidature.DateReponseEmployeur = DateTime.UtcNow;
+
+        _repository.Update(candidature);
+        await _repository.SaveChangesAsync();
+
+        return true;
+    }
+
     public async Task<IReadOnlyList<CandidatureResumeeResponse>> GetCandidaturesOffreAsync(int idOffre)
     {
         if (_currentUser.Role == "Employeur")

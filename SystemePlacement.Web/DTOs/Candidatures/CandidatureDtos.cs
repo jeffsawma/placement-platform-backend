@@ -70,3 +70,8 @@ public class ChangerStatutCandidatureRequest
     public StatutCandidature Statut { get; set; }
     public string? Message { get; set; }
 }
+
+public class ConfirmerEmploiRequest
+{
+    public string? Message { get; set; }
+}
