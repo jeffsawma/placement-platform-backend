@@ -11,15 +11,18 @@ public class OffreStageDirecteService : IOffreStageDirecteService
     private readonly IOffreStageDirecteRepository _repository;
     private readonly IOffreRepository _offreRepository;
     private readonly ICurrentUserService _currentUser;
+    private readonly INotificationService _notification;
 
     public OffreStageDirecteService(
         IOffreStageDirecteRepository repository,
         IOffreRepository offreRepository,
-        ICurrentUserService currentUser)
+        ICurrentUserService currentUser,
+        INotificationService notification)
     {
         _repository = repository;
         _offreRepository = offreRepository;
         _currentUser = currentUser;
+        _notification = notification;
     }
 
     public async Task<IReadOnlyList<OffreStageDirecteReponse>> GetMesOffresAsync()
@@ -106,6 +109,11 @@ public class OffreStageDirecteService : IOffreStageDirecteService
         offre.ReponseEtudiant = request.Reponse;
 
         await _repository.SaveChangesAsync();
+
+        await _notification.NotifierEmployeurAsync(
+            offre.IdEmployeur,
+            $"L'étudiant a {(request.Accepte ? "accepté" : "refusé")} votre offre de stage directe.");
+
         return true;
     }
 

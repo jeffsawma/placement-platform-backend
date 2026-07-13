@@ -99,6 +99,8 @@ builder.Services.AddScoped<ISuiviService, SuiviService>();
 
 builder.Services.AddScoped<IDemandeStageRepository, DemandeStageRepository>();
 builder.Services.AddScoped<IDemandeStageService, DemandeStageService>();
+builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
 
 
 // Configuration JWT

@@ -13,17 +13,20 @@ public class CandidatureService : ICandidatureService
     private readonly IOffreRepository _offreRepository;
     private readonly ICurrentUserService _currentUser;
     private readonly IWebHostEnvironment _env;
+    private readonly INotificationService _notification;
 
     public CandidatureService(
         ICandidatureRepository repository,
         IOffreRepository offreRepository,
         ICurrentUserService currentUser,
-        IWebHostEnvironment env)
+        IWebHostEnvironment env,
+        INotificationService notification)
     {
         _repository = repository;
         _offreRepository = offreRepository;
         _currentUser = currentUser;
         _env = env;
+        _notification = notification;
     }
 
     public async Task<IReadOnlyList<CandidatureResponse>> GetParOffreAsync(int idOffre)
@@ -75,6 +78,10 @@ public class CandidatureService : ICandidatureService
         await _repository.AddAsync(candidature);
         await _repository.SaveChangesAsync();
 
+        var offre = await _offreRepository.GetByIdAsync(candidature.IdOffre);
+        if (offre is not null)
+            await _notification.NotifierEmployeurAsync(offre.IdEmployeur, $"Nouvelle candidature reÃ§ue pour Â« {offre.Titre} Â».");
+
         return Map(candidature);
     }
 
@@ -83,7 +90,7 @@ public class CandidatureService : ICandidatureService
         return await ChangerStatutAsync(idCandidature, request.Statut, null); // null pour le message, car il n'est pas fourni dans cette surcharge
     }
 
-    // Cette surcharge permet de modifier le statut et, éventuellement, de fournir un message
+    // Cette surcharge permet de modifier le statut et, ï¿½ventuellement, de fournir un message
     public async Task<bool> ChangerStatutAsync(int idCandidature, StatutCandidature statut, string? message = null)
     {
         var candidature = await _repository.GetByIdAsync(idCandidature);
@@ -122,9 +129,9 @@ public class CandidatureService : ICandidatureService
                 return false;
         }
 
-        candidature.Statut = StatutCandidature.Acceptee; // Changer le statut de la candidature à "Acceptée"
+        candidature.Statut = StatutCandidature.Acceptee; // Changer le statut de la candidature ï¿½ "Acceptï¿½e"
         candidature.MessageReponseEmployeur = string.IsNullOrWhiteSpace(message)
-            ? "Emploi confirmé par l'employeur."
+            ? "Emploi confirmï¿½ par l'employeur."
             : message;
 
         candidature.DateReponseEmployeur = DateTime.UtcNow;
