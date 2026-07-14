@@ -34,10 +34,13 @@ public class CandidatureResponse
     public DateTime? DateReponseEmployeur { get; set; }
 }
 
+// Ajout l'id de l'étudiant 'IdEtudiant'
 public class CandidatureResumeeResponse
+
 {
     public int IdCandidature { get; set; }
     public int IdOffre { get; set; }
+    public int IdEtudiant { get; set; }
     public string TitreOffre { get; set; } = string.Empty;
     public string NomEtudiant { get; set; } = string.Empty;
     public string PrenomEtudiant { get; set; } = string.Empty;

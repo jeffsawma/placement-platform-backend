@@ -314,10 +314,12 @@ public class CandidatureService : ICandidatureService
         DateReponseEmployeur = c.DateReponseEmployeur
     };
 
+    // Ajout de l'id de l'étudiant pour permettre la création d'une offre de stage directe
     private static CandidatureResumeeResponse MapResumee(Candidature c) => new()
     {
         IdCandidature = c.IdCandidature,
         IdOffre = c.IdOffre,
+        IdEtudiant = c.IdEtudiant,
         TitreOffre = c.Offre?.Titre ?? string.Empty,
         NomEtudiant = c.Etudiant?.Utilisateur?.Nom ?? string.Empty,
         PrenomEtudiant = c.Etudiant?.Utilisateur?.Prenom ?? string.Empty,
