@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SystemePlacement.Web.Data;
 
@@ -11,9 +12,11 @@ using SystemePlacement.Web.Data;
 namespace SystemePlacement.Web.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260703164701_AjoutStagesConfirmations")]
+    partial class AjoutStagesConfirmations
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -174,59 +177,6 @@ namespace SystemePlacement.Web.Migrations
                         .HasDefaultValue(true)
                         .HasColumnName("actif");
 
-                    b.Property<string>("CouleurAccent")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(20)
-                        .HasColumnType("varchar(20)")
-                        .HasDefaultValue("#69be28")
-                        .HasColumnName("couleur_accent");
-
-                    b.Property<string>("CouleurFond")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(20)
-                        .HasColumnType("varchar(20)")
-                        .HasDefaultValue("#f4f7fb")
-                        .HasColumnName("couleur_fond");
-
-                    b.Property<string>("CouleurPrimaire")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(20)
-                        .HasColumnType("varchar(20)")
-                        .HasDefaultValue("#009fda")
-                        .HasColumnName("couleur_primaire");
-
-                    b.Property<string>("CouleurPrimaireFoncee")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(20)
-                        .HasColumnType("varchar(20)")
-                        .HasDefaultValue("#003f7d")
-                        .HasColumnName("couleur_primaire_foncee");
-
-                    b.Property<string>("CouleurSecondaire")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(20)
-                        .HasColumnType("varchar(20)")
-                        .HasDefaultValue("#0053a1")
-                        .HasColumnName("couleur_secondaire");
-
-                    b.Property<string>("CouleurTexte")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(20)
-                        .HasColumnType("varchar(20)")
-                        .HasDefaultValue("#172033")
-                        .HasColumnName("couleur_texte");
-
-                    b.Property<string>("LogoUrl")
-                        .HasMaxLength(500)
-                        .HasColumnType("varchar(500)")
-                        .HasColumnName("logo_url");
-
                     b.Property<string>("Nom")
                         .IsRequired()
                         .HasMaxLength(150)
@@ -271,15 +221,21 @@ namespace SystemePlacement.Web.Migrations
                     b.Property<string>("Motif")
                         .HasColumnType("longtext");
 
+                    b.Property<int?>("StageIdStage")
+                        .HasColumnType("int");
+
                     b.Property<string>("TypeConfirmation")
                         .IsRequired()
                         .HasColumnType("longtext");
 
+                    b.Property<int?>("UtilisateurIdUtilisateur")
+                        .HasColumnType("int");
+
                     b.HasKey("IdConfirmation");
 
-                    b.HasIndex("IdStage");
+                    b.HasIndex("StageIdStage");
 
-                    b.HasIndex("IdUtilisateur");
+                    b.HasIndex("UtilisateurIdUtilisateur");
 
                     b.ToTable("ConfirmationsStage");
                 });
@@ -371,9 +327,6 @@ namespace SystemePlacement.Web.Migrations
                     b.Property<string>("TypeDemarche")
                         .IsRequired()
                         .HasColumnType("longtext");
-
-                    b.Property<bool>("VisibleEtudiant")
-                        .HasColumnType("tinyint(1)");
 
                     b.HasKey("IdDemarche");
 
@@ -731,6 +684,9 @@ namespace SystemePlacement.Web.Migrations
                     b.Property<DateTime?>("DateFin")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<int?>("EtudiantIdEtudiant")
+                        .HasColumnType("int");
+
                     b.Property<int>("IdEtudiant")
                         .HasColumnType("int");
 
@@ -739,6 +695,9 @@ namespace SystemePlacement.Web.Migrations
 
                     b.Property<string>("Lieu")
                         .HasColumnType("longtext");
+
+                    b.Property<int?>("OffreIdOffre")
+                        .HasColumnType("int");
 
                     b.Property<string>("Statut")
                         .IsRequired()
@@ -749,9 +708,9 @@ namespace SystemePlacement.Web.Migrations
 
                     b.HasKey("IdStage");
 
-                    b.HasIndex("IdEtudiant");
+                    b.HasIndex("EtudiantIdEtudiant");
 
-                    b.HasIndex("IdOffre");
+                    b.HasIndex("OffreIdOffre");
 
                     b.ToTable("Stages");
                 });
@@ -949,15 +908,11 @@ namespace SystemePlacement.Web.Migrations
                 {
                     b.HasOne("SystemePlacement.Web.Models.Stage", "Stage")
                         .WithMany("Confirmations")
-                        .HasForeignKey("IdStage")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("StageIdStage");
 
                     b.HasOne("SystemePlacement.Web.Models.Utilisateur", "Utilisateur")
                         .WithMany()
-                        .HasForeignKey("IdUtilisateur")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .HasForeignKey("UtilisateurIdUtilisateur");
 
                     b.Navigation("Stage");
 
@@ -1091,14 +1046,11 @@ namespace SystemePlacement.Web.Migrations
                 {
                     b.HasOne("SystemePlacement.Web.Models.Etudiant", "Etudiant")
                         .WithMany()
-                        .HasForeignKey("IdEtudiant")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .HasForeignKey("EtudiantIdEtudiant");
 
                     b.HasOne("SystemePlacement.Web.Models.Offre", "Offre")
                         .WithMany()
-                        .HasForeignKey("IdOffre")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .HasForeignKey("OffreIdOffre");
 
                     b.Navigation("Etudiant");
 

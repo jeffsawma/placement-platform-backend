@@ -7,7 +7,7 @@ namespace SystemePlacement.Web.Controllers;
 
 [ApiController]
 [Route("api/demarches-suivi")]
-[Authorize(Roles = "ResponsableStage")]
+[Authorize]
 public class DemarchesSuiviController : ControllerBase
 {
     private readonly ISuiviService _suiviService;
@@ -17,14 +17,20 @@ public class DemarchesSuiviController : ControllerBase
         _suiviService = suiviService;
     }
 
+    // GET /api/demarches-suivi/etudiants
+    // Liste des etudiants suivis par le responsable de stage.
     [HttpGet("etudiants")]
+    [Authorize(Roles = "ResponsableStage")]
     public async Task<IActionResult> GetEtudiantsSuivis()
     {
         var etudiants = await _suiviService.GetEtudiantsSuivisAsync();
         return Ok(etudiants);
     }
 
+    // GET /api/demarches-suivi/etudiants/5
+    // Detail d'un etudiant suivi.
     [HttpGet("etudiants/{idEtudiant:int}")]
+    [Authorize(Roles = "ResponsableStage")]
     public async Task<IActionResult> GetEtudiantSuiviDetail(int idEtudiant)
     {
         var detail = await _suiviService.GetEtudiantSuiviDetailAsync(idEtudiant);
@@ -37,7 +43,10 @@ public class DemarchesSuiviController : ControllerBase
         return Ok(detail);
     }
 
+    // POST /api/demarches-suivi/etudiants/5/demarches
+    // Ajoute une demarche ou note de suivi pour un etudiant.
     [HttpPost("etudiants/{idEtudiant:int}/demarches")]
+    [Authorize(Roles = "ResponsableStage")]
     public async Task<IActionResult> AjouterDemarche(
         int idEtudiant,
         DemarcheSuiviCreateDto request)
@@ -53,5 +62,15 @@ public class DemarchesSuiviController : ControllerBase
             nameof(GetEtudiantSuiviDetail),
             new { idEtudiant },
             demarche);
+    }
+
+    // GET /api/demarches-suivi/mes-demarches
+    // Liste des demarches visibles pour l'etudiant connecte.
+    [HttpGet("mes-demarches")]
+    [Authorize(Roles = "Etudiant")]
+    public async Task<IActionResult> GetMesDemarches()
+    {
+        var demarches = await _suiviService.GetMesDemarchesAsync();
+        return Ok(demarches);
     }
 }

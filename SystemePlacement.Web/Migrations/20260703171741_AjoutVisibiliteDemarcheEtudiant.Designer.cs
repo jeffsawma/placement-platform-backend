@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SystemePlacement.Web.Data;
 
@@ -11,9 +12,11 @@ using SystemePlacement.Web.Data;
 namespace SystemePlacement.Web.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260703171741_AjoutVisibiliteDemarcheEtudiant")]
+    partial class AjoutVisibiliteDemarcheEtudiant
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -173,59 +176,6 @@ namespace SystemePlacement.Web.Migrations
                         .HasColumnType("tinyint(1)")
                         .HasDefaultValue(true)
                         .HasColumnName("actif");
-
-                    b.Property<string>("CouleurAccent")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(20)
-                        .HasColumnType("varchar(20)")
-                        .HasDefaultValue("#69be28")
-                        .HasColumnName("couleur_accent");
-
-                    b.Property<string>("CouleurFond")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(20)
-                        .HasColumnType("varchar(20)")
-                        .HasDefaultValue("#f4f7fb")
-                        .HasColumnName("couleur_fond");
-
-                    b.Property<string>("CouleurPrimaire")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(20)
-                        .HasColumnType("varchar(20)")
-                        .HasDefaultValue("#009fda")
-                        .HasColumnName("couleur_primaire");
-
-                    b.Property<string>("CouleurPrimaireFoncee")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(20)
-                        .HasColumnType("varchar(20)")
-                        .HasDefaultValue("#003f7d")
-                        .HasColumnName("couleur_primaire_foncee");
-
-                    b.Property<string>("CouleurSecondaire")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(20)
-                        .HasColumnType("varchar(20)")
-                        .HasDefaultValue("#0053a1")
-                        .HasColumnName("couleur_secondaire");
-
-                    b.Property<string>("CouleurTexte")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(20)
-                        .HasColumnType("varchar(20)")
-                        .HasDefaultValue("#172033")
-                        .HasColumnName("couleur_texte");
-
-                    b.Property<string>("LogoUrl")
-                        .HasMaxLength(500)
-                        .HasColumnType("varchar(500)")
-                        .HasColumnName("logo_url");
 
                     b.Property<string>("Nom")
                         .IsRequired()

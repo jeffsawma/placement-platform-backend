@@ -12,5 +12,7 @@ public class DemarcheSuiviResponseDto
 
     public string Note { get; set; } = string.Empty;
 
+    public bool VisibleEtudiant { get; set; }
+
     public DateTime DateDemarche { get; set; }
 }

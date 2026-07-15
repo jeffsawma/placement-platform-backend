@@ -7,21 +7,20 @@ using SystemePlacement.Web.Models;
 namespace SystemePlacement.Web.Controllers;
 
 [ApiController]
-[Route("api/colleges")] // Route de base pour les collèges
+[Route("api/colleges")]
 public class CollegesController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
+
     public CollegesController(ApplicationDbContext context)
     {
         _context = context;
     }
 
-    // GET /api/colleges
     [HttpGet]
     public async Task<ActionResult<IEnumerable<CollegeResponseDto>>> GetColleges(bool includeInactive = false)
     {
-        var query = _context.Colleges
-            .AsNoTracking();
+        var query = _context.Colleges.AsNoTracking();
 
         if (!includeInactive)
         {
@@ -30,43 +29,29 @@ public class CollegesController : ControllerBase
 
         var colleges = await query
             .OrderBy(c => c.Nom)
-            .Select(c => new CollegeResponseDto
-            {
-                IdCollege = c.IdCollege,
-                Nom = c.Nom,
-                Ville = c.Ville,
-                Actif = c.Actif
-            })
+            .Select(c => MapCollegeResponse(c))
             .ToListAsync();
 
-        return Ok(colleges); // Retourne la liste de tous les collèges
+        return Ok(colleges);
     }
 
-    // GET /api/colleges/{id}
-    [HttpGet("{id}")]
+    [HttpGet("{id:int}")]
     public async Task<ActionResult<CollegeResponseDto>> GetCollegeById(int id)
     {
         var college = await _context.Colleges
             .AsNoTracking()
             .Where(c => c.IdCollege == id)
-            .Select(c => new CollegeResponseDto
-            {
-                IdCollege = c.IdCollege,
-                Nom = c.Nom,
-                Ville = c.Ville,
-                Actif = c.Actif
-            })
+            .Select(c => MapCollegeResponse(c))
             .FirstOrDefaultAsync();
 
         if (college == null)
         {
-            return NotFound(new { message = $"Collège avec ID {id} non trouvé." });
+            return NotFound(new { message = $"College avec ID {id} non trouve." });
         }
 
         return Ok(college);
     }
 
-    // POST /api/colleges
     [HttpPost]
     public async Task<ActionResult<CollegeResponseDto>> CreateCollege([FromBody] CollegeCreateDto dto)
     {
@@ -78,39 +63,38 @@ public class CollegesController : ControllerBase
             return BadRequest(new { message = "Le nom et la ville sont obligatoires." });
         }
 
-        // Vérifier si un collège avec le même nom existe déjà
-        var nomExiste = await _context.Colleges
-            .AnyAsync(c => c.Nom == nom);
+        var nomExiste = await _context.Colleges.AnyAsync(c => c.Nom == nom);
 
         if (nomExiste)
         {
-            return BadRequest(new { message = $"Un collège avec le nom '{nom}' existe déjà." });
+            return BadRequest(new { message = $"Un college avec le nom '{nom}' existe deja." });
         }
 
         var college = new College
         {
-            Nom = nom, // Trim pour éviter les espaces inutiles
+            Nom = nom,
             Ville = ville,
-            Actif = dto.Actif
-        };
+            Actif = dto.Actif,
 
+            // Theme visuel du college.
+            CouleurPrimaire = dto.CouleurPrimaire,
+            CouleurPrimaireFoncee = dto.CouleurPrimaireFoncee,
+            CouleurSecondaire = dto.CouleurSecondaire,
+            CouleurAccent = dto.CouleurAccent,
+            CouleurFond = dto.CouleurFond,
+            CouleurTexte = dto.CouleurTexte,
+            LogoUrl = dto.LogoUrl
+        };
 
         _context.Colleges.Add(college);
         await _context.SaveChangesAsync();
 
-        var response = new CollegeResponseDto
-        {
-            IdCollege = college.IdCollege,
-            Nom = college.Nom,
-            Ville = college.Ville,
-            Actif = college.Actif
-        };
+        var response = MapCollegeResponse(college);
 
-        return CreatedAtAction(nameof(GetCollegeById), new { id = college.IdCollege }, response); // CreatedAtAction retourne un code 201 avec l'URL du nouvel élément créé et les données de ce dernier
+        return CreatedAtAction(nameof(GetCollegeById), new { id = college.IdCollege }, response);
     }
 
-    // PUT /api/colleges/{id}
-    [HttpPut("{id}")]
+    [HttpPut("{id:int}")]
     public async Task<IActionResult> UpdateCollege(int id, [FromBody] CollegeUpdateDto dto)
     {
         var nom = dto.Nom.Trim();
@@ -122,35 +106,40 @@ public class CollegesController : ControllerBase
         }
 
         var existingCollege = await _context.Colleges
-             .FirstOrDefaultAsync(c => c.IdCollege == id);
+            .FirstOrDefaultAsync(c => c.IdCollege == id);
 
         if (existingCollege == null)
         {
-            return NotFound(new { message = $"Collège avec ID {id} non trouvé." });
+            return NotFound(new { message = $"College avec ID {id} non trouve." });
         }
 
-        // Vérifier si un autre collège avec le même nom existe déjà (en excluant le collège actuel)
         var nomExiste = await _context.Colleges
             .AnyAsync(c => c.Nom == nom && c.IdCollege != id);
 
         if (nomExiste)
         {
-            return BadRequest(new { message = $"Un autre collège avec le nom '{nom}' existe déjà." });
+            return BadRequest(new { message = $"Un autre college avec le nom '{nom}' existe deja." });
         }
 
-
-        // Mettre à jour les propriétés du collège existant avec les nouvelles valeurs
         existingCollege.Nom = nom;
         existingCollege.Ville = ville;
         existingCollege.Actif = dto.Actif;
+
+        // Sauvegarde des couleurs choisies dans Gestion des colleges.
+        existingCollege.CouleurPrimaire = dto.CouleurPrimaire;
+        existingCollege.CouleurPrimaireFoncee = dto.CouleurPrimaireFoncee;
+        existingCollege.CouleurSecondaire = dto.CouleurSecondaire;
+        existingCollege.CouleurAccent = dto.CouleurAccent;
+        existingCollege.CouleurFond = dto.CouleurFond;
+        existingCollege.CouleurTexte = dto.CouleurTexte;
+        existingCollege.LogoUrl = dto.LogoUrl;
 
         await _context.SaveChangesAsync();
 
         return NoContent();
     }
 
-    // DELETE /api/colleges/{id}
-    [HttpDelete("{id}")]
+    [HttpDelete("{id:int}")]
     public async Task<IActionResult> DeleteCollege(int id)
     {
         var college = await _context.Colleges
@@ -158,19 +147,30 @@ public class CollegesController : ControllerBase
 
         if (college == null)
         {
-            return NotFound(new { message = $"Collège avec ID {id} non trouvé." });
+            return NotFound(new { message = $"College avec ID {id} non trouve." });
         }
 
-        college.Actif = false; // Marquer le collège comme inactif au lieu de le supprimer physiquement
+        college.Actif = false;
         await _context.SaveChangesAsync();
 
         return NoContent();
     }
-}
 
-// Ce controller gerera les routes liées aux colleges, comme :
-// - GET /api/colleges : Récupérer la liste de tous les collèges
-// - GET /api/colleges/{id} : Récupérer les détails d'un collège spécifique
-// - POST /api/colleges : Créer un nouveau collège
-// - PUT /api/colleges/{id} : Mettre à jour les informations d'un collège existant
-// - DELETE /api/colleges/{id} : Supprimer un collège
+    private static CollegeResponseDto MapCollegeResponse(College college)
+    {
+        return new CollegeResponseDto
+        {
+            IdCollege = college.IdCollege,
+            Nom = college.Nom,
+            Ville = college.Ville,
+            Actif = college.Actif,
+            CouleurPrimaire = college.CouleurPrimaire,
+            CouleurPrimaireFoncee = college.CouleurPrimaireFoncee,
+            CouleurSecondaire = college.CouleurSecondaire,
+            CouleurAccent = college.CouleurAccent,
+            CouleurFond = college.CouleurFond,
+            CouleurTexte = college.CouleurTexte,
+            LogoUrl = college.LogoUrl
+        };
+    }
+}

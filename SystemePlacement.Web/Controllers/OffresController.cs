@@ -13,22 +13,38 @@ public class OffresController : ControllerBase
 {
     private readonly IOffreService _service;
 
-    public OffresController(IOffreService service) => _service = service;
+    public OffresController(IOffreService service)
+    {
+        _service = service;
+    }
 
-    // ── GET /api/offres?type=Emploi&statut=Active ─────────────────────────────
-    /// <summary>Retourne la liste des offres (filtrable par type et statut).</summary>
+    // GET /api/offres
+    // Liste publique des offres pour la recherche.
     [HttpGet]
-    [AllowAnonymous]                         // Les étudiants non connectés peuvent consulter
+    [AllowAnonymous]
     public async Task<IActionResult> GetAll(
         [FromQuery] TypeOffre? type,
         [FromQuery] StatutOffre? statut,
         [FromQuery] int? idDomaine,
         [FromQuery] string? lieu,
         [FromQuery] string? motsCles)
-        => Ok(await _service.GetAllAsync(type, statut, idDomaine, lieu, motsCles));
+    {
+        var offres = await _service.GetAllAsync(type, statut, idDomaine, lieu, motsCles);
+        return Ok(offres);
+    }
 
-    // ── GET /api/offres/{id} ──────────────────────────────────────────────────
-    /// <summary>Retourne le détail d'une offre (emploi ou stage).</summary>
+    // GET /api/offres/mes-offres
+    // Employeur : ses offres seulement.
+    // Admin/SuperAdmin : toutes les offres.
+    [HttpGet("mes-offres")]
+    [Authorize(Roles = "Employeur,Administrateur,SuperAdministrateur")]
+    public async Task<IActionResult> GetMesOffres()
+    {
+        var offres = await _service.GetMesOffresAsync();
+        return Ok(offres);
+    }
+
+    // GET /api/offres/{id}
     [HttpGet("{idOffre:int}")]
     [AllowAnonymous]
     public async Task<IActionResult> GetById(int idOffre)
@@ -37,39 +53,40 @@ public class OffresController : ControllerBase
         return offre is null ? NotFound() : Ok(offre);
     }
 
-    // ── POST /api/offres/emploi ───────────────────────────────────────────────
-    /// <summary>US-07 — Crée une offre d'emploi.</summary>
+    // POST /api/offres/emploi
     [HttpPost("emploi")]
-    [Authorize(Roles = "Employeur,Administrateur")]
+    [Authorize(Roles = "Employeur,Administrateur,SuperAdministrateur")]
     public async Task<IActionResult> CreerEmploi([FromBody] CreerOffreEmploiRequest request)
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
 
         var offre = await _service.CreerEmploiAsync(request);
+
         return offre is null
             ? Forbid()
             : CreatedAtAction(nameof(GetById), new { idOffre = offre.IdOffre }, offre);
     }
 
-    // ── POST /api/offres/stage ────────────────────────────────────────────────
-    /// <summary>US-07 — Crée une offre de stage.</summary>
+    // POST /api/offres/stage
     [HttpPost("stage")]
-    [Authorize(Roles = "Employeur,Administrateur")]
+    [Authorize(Roles = "Employeur,Administrateur,SuperAdministrateur")]
     public async Task<IActionResult> CreerStage([FromBody] CreerOffreStageRequest request)
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
 
         var offre = await _service.CreerStageAsync(request);
+
         return offre is null
             ? Forbid()
             : CreatedAtAction(nameof(GetById), new { idOffre = offre.IdOffre }, offre);
     }
 
-    // ── PUT /api/offres/emploi/{id} ───────────────────────────────────────────
-    /// <summary>US-08 — Modifie une offre d'emploi.</summary>
+    // PUT /api/offres/emploi/{id}
     [HttpPut("emploi/{idOffre:int}")]
-    [Authorize(Roles = "Employeur,Administrateur")]
-    public async Task<IActionResult> ModifierEmploi(int idOffre, [FromBody] ModifierOffreEmploiRequest request)
+    [Authorize(Roles = "Employeur,Administrateur,SuperAdministrateur")]
+    public async Task<IActionResult> ModifierEmploi(
+        int idOffre,
+        [FromBody] ModifierOffreEmploiRequest request)
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
 
@@ -77,11 +94,12 @@ public class OffresController : ControllerBase
         return offre is null ? NotFound() : Ok(offre);
     }
 
-    // ── PUT /api/offres/stage/{id} ────────────────────────────────────────────
-    /// <summary>US-09 — Modifie une offre de stage.</summary>
+    // PUT /api/offres/stage/{id}
     [HttpPut("stage/{idOffre:int}")]
-    [Authorize(Roles = "Employeur,Administrateur")]
-    public async Task<IActionResult> ModifierStage(int idOffre, [FromBody] ModifierOffreStageRequest request)
+    [Authorize(Roles = "Employeur,Administrateur,SuperAdministrateur")]
+    public async Task<IActionResult> ModifierStage(
+        int idOffre,
+        [FromBody] ModifierOffreStageRequest request)
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
 
@@ -89,10 +107,9 @@ public class OffresController : ControllerBase
         return offre is null ? NotFound() : Ok(offre);
     }
 
-    // ── DELETE /api/offres/{id} ───────────────────────────────────────────────
-    /// <summary>US-10 — Supprime une offre (soft: uniquement si aucune candidature).</summary>
+    // DELETE /api/offres/{id}
     [HttpDelete("{idOffre:int}")]
-    [Authorize(Roles = "Employeur,Administrateur")]
+    [Authorize(Roles = "Employeur,Administrateur,SuperAdministrateur")]
     public async Task<IActionResult> Supprimer(int idOffre)
     {
         var succes = await _service.SupprimerAsync(idOffre);
