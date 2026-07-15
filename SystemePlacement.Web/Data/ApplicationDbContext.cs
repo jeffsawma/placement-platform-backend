@@ -40,7 +40,7 @@ public class ApplicationDbContext : DbContext
 
     // Dev 2 - Parametrage, colleges et domaines d'etudes
 
-    public DbSet<College> Colleges { get; set; }
+    
 
 
     // Dev 2 - Collèges, Domaines d'études, Offres de stage directes
@@ -62,7 +62,7 @@ public class ApplicationDbContext : DbContext
 
     // Dev 4 - Candidatures, documents et demandes de stage
 
-    public DbSet<Candidature> Candidatures { get; set; }
+   
 
 
 
@@ -76,7 +76,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<Notification> Notifications { get; set; }
 
 
-    public DbSet<Notification> Notifications { get; set; }
+    
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
