@@ -117,6 +117,7 @@ public class SuiviService : ISuiviService
                 IdResponsable = d.IdResponsable,
                 TypeDemarche = d.TypeDemarche,
                 Note = d.Note,
+                VisibleEtudiant = d.VisibleEtudiant,
                 DateDemarche = d.DateDemarche
             })
             .ToListAsync();
@@ -174,6 +175,7 @@ public class SuiviService : ISuiviService
             IdResponsable = responsable.IdResponsable,
             TypeDemarche = request.TypeDemarche,
             Note = request.Note,
+            VisibleEtudiant = request.VisibleEtudiant,
             DateDemarche = DateTime.UtcNow
         };
 
@@ -187,7 +189,41 @@ public class SuiviService : ISuiviService
             IdResponsable = demarche.IdResponsable,
             TypeDemarche = demarche.TypeDemarche,
             Note = demarche.Note,
+            VisibleEtudiant = demarche.VisibleEtudiant,
             DateDemarche = demarche.DateDemarche
         };
+    }
+
+    public async Task<IReadOnlyList<DemarcheSuiviResponseDto>> GetMesDemarchesAsync()
+    {
+        if (!_currentUser.IdUtilisateur.HasValue)
+        {
+            return Array.Empty<DemarcheSuiviResponseDto>();
+        }
+
+        var etudiant = await _context.Etudiants
+            .AsNoTracking()
+            .FirstOrDefaultAsync(e => e.IdUtilisateur == _currentUser.IdUtilisateur.Value);
+
+        if (etudiant == null)
+        {
+            return Array.Empty<DemarcheSuiviResponseDto>();
+        }
+
+        return await _context.DemarchesSuivi
+            .AsNoTracking()
+            .Where(d => d.IdEtudiant == etudiant.IdEtudiant && d.VisibleEtudiant)
+            .OrderByDescending(d => d.DateDemarche)
+            .Select(d => new DemarcheSuiviResponseDto
+            {
+                IdDemarche = d.IdDemarche,
+                IdEtudiant = d.IdEtudiant,
+                IdResponsable = d.IdResponsable,
+                TypeDemarche = d.TypeDemarche,
+                Note = d.Note,
+                VisibleEtudiant = d.VisibleEtudiant,
+                DateDemarche = d.DateDemarche
+            })
+            .ToListAsync();
     }
 }

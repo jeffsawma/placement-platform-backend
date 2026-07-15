@@ -1,13 +1,26 @@
-﻿namespace SystemePlacement.Web.DTOs.Colleges
+﻿namespace SystemePlacement.Web.DTOs.Colleges;
+
+public class CollegeResponseDto
 {
-    public class CollegeResponseDto
-    {
-        public int IdCollege { get; set; }
-        public string Nom { get; set; } = string.Empty;
-        public string Ville { get; set; } = string.Empty;
-        public bool Actif { get; set; }
-    }
+    public int IdCollege { get; set; }
+
+    public string Nom { get; set; } = string.Empty;
+
+    public string Ville { get; set; } = string.Empty;
+
+    public bool Actif { get; set; }
+
+    public string CouleurPrimaire { get; set; } = string.Empty;
+
+    public string CouleurPrimaireFoncee { get; set; } = string.Empty;
+
+    public string CouleurSecondaire { get; set; } = string.Empty;
+
+    public string CouleurAccent { get; set; } = string.Empty;
+
+    public string CouleurFond { get; set; } = string.Empty;
+
+    public string CouleurTexte { get; set; } = string.Empty;
+
+    public string? LogoUrl { get; set; }
 }
-
-// Décrit ce que l'API renvoie au client lors d'une demande d'informations sur un établissement d'enseignement supérieur
-

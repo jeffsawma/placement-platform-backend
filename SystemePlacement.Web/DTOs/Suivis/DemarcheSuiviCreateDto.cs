@@ -2,9 +2,9 @@
 
 public class DemarcheSuiviCreateDto
 {
-    // Exemple : Appel, Courriel, Rencontre, Note.
     public string TypeDemarche { get; set; } = string.Empty;
 
-    // Note ajoutee par le responsable de stage.
     public string Note { get; set; } = string.Empty;
+
+    public bool VisibleEtudiant { get; set; }
 }
