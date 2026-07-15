@@ -56,11 +56,20 @@ public class DemandeStageService : IDemandeStageService
         return demandes.Select(Map).ToList();
     }
 
+    public async Task<IReadOnlyList<DemandeStageResponse>> GetDemandesParDomaineAsync(int idDomaine)
+    {
+        var demandes = await _repository.GetByDomaineAsync(idDomaine);
+        return demandes.Select(Map).ToList();
+    }
+
     private static DemandeStageResponse Map(DemandeStage d) => new()
     {
         IdDemandeStage = d.IdDemandeStage,
         IdDomaine = d.IdDomaine,
         NomDomaine = d.DomaineEtude?.Nom ?? string.Empty,
+        NomEtudiant = d.Etudiant?.Utilisateur?.Nom ?? string.Empty,
+        PrenomEtudiant = d.Etudiant?.Utilisateur?.Prenom ?? string.Empty,
+        CourrielEtudiant = d.Etudiant?.Utilisateur?.Courriel,
         Description = d.Description,
         PeriodeSouhaitee = d.PeriodeSouhaitee,
         Competences = d.Competences,

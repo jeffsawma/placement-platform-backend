@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SystemePlacement.Web.Data;
 
@@ -11,9 +12,11 @@ using SystemePlacement.Web.Data;
 namespace SystemePlacement.Web.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260705023529_Dev2AjoutReponseEmployeurCandidature")]
+    partial class Dev2AjoutReponseEmployeurCandidature
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -180,59 +183,6 @@ namespace SystemePlacement.Web.Migrations
                         .HasDefaultValue(true)
                         .HasColumnName("actif");
 
-                    b.Property<string>("CouleurAccent")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(20)
-                        .HasColumnType("varchar(20)")
-                        .HasDefaultValue("#69be28")
-                        .HasColumnName("couleur_accent");
-
-                    b.Property<string>("CouleurFond")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(20)
-                        .HasColumnType("varchar(20)")
-                        .HasDefaultValue("#f4f7fb")
-                        .HasColumnName("couleur_fond");
-
-                    b.Property<string>("CouleurPrimaire")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(20)
-                        .HasColumnType("varchar(20)")
-                        .HasDefaultValue("#009fda")
-                        .HasColumnName("couleur_primaire");
-
-                    b.Property<string>("CouleurPrimaireFoncee")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(20)
-                        .HasColumnType("varchar(20)")
-                        .HasDefaultValue("#003f7d")
-                        .HasColumnName("couleur_primaire_foncee");
-
-                    b.Property<string>("CouleurSecondaire")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(20)
-                        .HasColumnType("varchar(20)")
-                        .HasDefaultValue("#0053a1")
-                        .HasColumnName("couleur_secondaire");
-
-                    b.Property<string>("CouleurTexte")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(20)
-                        .HasColumnType("varchar(20)")
-                        .HasDefaultValue("#172033")
-                        .HasColumnName("couleur_texte");
-
-                    b.Property<string>("LogoUrl")
-                        .HasMaxLength(500)
-                        .HasColumnType("varchar(500)")
-                        .HasColumnName("logo_url");
-
                     b.Property<string>("Nom")
                         .IsRequired()
                         .HasMaxLength(150)
@@ -251,43 +201,6 @@ namespace SystemePlacement.Web.Migrations
                         .IsUnique();
 
                     b.ToTable("colleges", (string)null);
-                });
-
-            modelBuilder.Entity("SystemePlacement.Web.Models.ConfirmationStage", b =>
-                {
-                    b.Property<int>("IdConfirmation")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("IdConfirmation"));
-
-                    b.Property<DateTime>("DateDecision")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("Decision")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<int>("IdStage")
-                        .HasColumnType("int");
-
-                    b.Property<int>("IdUtilisateur")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Motif")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("TypeConfirmation")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.HasKey("IdConfirmation");
-
-                    b.HasIndex("IdStage");
-
-                    b.HasIndex("IdUtilisateur");
-
-                    b.ToTable("ConfirmationsStage");
                 });
 
             modelBuilder.Entity("SystemePlacement.Web.Models.DemandeStage", b =>
@@ -377,9 +290,6 @@ namespace SystemePlacement.Web.Migrations
                     b.Property<string>("TypeDemarche")
                         .IsRequired()
                         .HasColumnType("longtext");
-
-                    b.Property<bool>("VisibleEtudiant")
-                        .HasColumnType("tinyint(1)");
 
                     b.HasKey("IdDemarche");
 
@@ -573,41 +483,6 @@ namespace SystemePlacement.Web.Migrations
                     b.ToTable("etudiants", (string)null);
                 });
 
-            modelBuilder.Entity("SystemePlacement.Web.Models.Notification", b =>
-                {
-                    b.Property<int>("IdNotification")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("id_notification");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("IdNotification"));
-
-                    b.Property<DateTime>("DateCreation")
-                        .HasColumnType("datetime(6)")
-                        .HasColumnName("date_creation");
-
-                    b.Property<int>("IdUtilisateur")
-                        .HasColumnType("int")
-                        .HasColumnName("id_utilisateur");
-
-                    b.Property<bool>("Lue")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("tinyint(1)")
-                        .HasDefaultValue(false)
-                        .HasColumnName("lue");
-
-                    b.Property<string>("Message")
-                        .IsRequired()
-                        .HasColumnType("longtext")
-                        .HasColumnName("message");
-
-                    b.HasKey("IdNotification");
-
-                    b.HasIndex("IdUtilisateur");
-
-                    b.ToTable("notifications", (string)null);
-                });
-
             modelBuilder.Entity("SystemePlacement.Web.Models.Offre", b =>
                 {
                     b.Property<int>("IdOffre")
@@ -697,85 +572,6 @@ namespace SystemePlacement.Web.Migrations
                     b.ToTable("offre_domaines", (string)null);
                 });
 
-            modelBuilder.Entity("SystemePlacement.Web.Models.OffreStageDirecte", b =>
-                {
-                    b.Property<int>("IdOffreDirecte")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("id_offre_directe");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("IdOffreDirecte"));
-
-                    b.Property<string>("Commentaire")
-                        .HasColumnType("longtext")
-                        .HasColumnName("commentaire");
-
-                    b.Property<string>("Conditions")
-                        .IsRequired()
-                        .HasColumnType("TEXT")
-                        .HasColumnName("conditions");
-
-                    b.Property<DateTime?>("DateDebutProposee")
-                        .HasColumnType("datetime(6)")
-                        .HasColumnName("date_debut_proposee");
-
-                    b.Property<DateTime?>("DateFinProposee")
-                        .HasColumnType("datetime(6)")
-                        .HasColumnName("date_fin_proposee");
-
-                    b.Property<DateTime>("DateProposition")
-                        .HasColumnType("datetime(6)")
-                        .HasColumnName("date_proposition");
-
-                    b.Property<int?>("IdCandidature")
-                        .HasColumnType("int")
-                        .HasColumnName("id_candidature");
-
-                    b.Property<int?>("IdDemandeStage")
-                        .HasColumnType("int")
-                        .HasColumnName("id_demande_stage");
-
-                    b.Property<int>("IdEmployeur")
-                        .HasColumnType("int")
-                        .HasColumnName("id_employeur");
-
-                    b.Property<int>("IdEtudiant")
-                        .HasColumnType("int")
-                        .HasColumnName("id_etudiant");
-
-                    b.Property<int?>("IdOffreStage")
-                        .HasColumnType("int")
-                        .HasColumnName("id_offre_stage");
-
-                    b.Property<string>("ReponseEtudiant")
-                        .HasColumnType("longtext")
-                        .HasColumnName("reponse_etudiant");
-
-                    b.Property<string>("Statut")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(30)
-                        .HasColumnType("varchar(30)")
-                        .HasDefaultValue("Envoyee")
-                        .HasColumnName("statut");
-
-                    b.HasKey("IdOffreDirecte");
-
-                    b.HasIndex("IdCandidature");
-
-                    b.HasIndex("IdDemandeStage");
-
-                    b.HasIndex("IdEmployeur");
-
-                    b.HasIndex("IdEtudiant");
-
-                    b.HasIndex("IdOffreStage");
-
-                    b.HasIndex("Statut");
-
-                    b.ToTable("offres_stage_directes", (string)null);
-                });
-
             modelBuilder.Entity("SystemePlacement.Web.Models.ResponsableStage", b =>
                 {
                     b.Property<int>("IdResponsable")
@@ -829,51 +625,6 @@ namespace SystemePlacement.Web.Migrations
                         .IsUnique();
 
                     b.ToTable("roles", (string)null);
-                });
-
-            modelBuilder.Entity("SystemePlacement.Web.Models.Stage", b =>
-                {
-                    b.Property<int>("IdStage")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("IdStage"));
-
-                    b.Property<DateTime?>("DateConfirmation")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<DateTime>("DateCreation")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<DateTime?>("DateDebut")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<DateTime?>("DateFin")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int>("IdEtudiant")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("IdOffre")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Lieu")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Statut")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Superviseur")
-                        .HasColumnType("longtext");
-
-                    b.HasKey("IdStage");
-
-                    b.HasIndex("IdEtudiant");
-
-                    b.HasIndex("IdOffre");
-
-                    b.ToTable("Stages");
                 });
 
             modelBuilder.Entity("SystemePlacement.Web.Models.Utilisateur", b =>
@@ -1065,25 +816,6 @@ namespace SystemePlacement.Web.Migrations
                     b.Navigation("Candidature");
                 });
 
-            modelBuilder.Entity("SystemePlacement.Web.Models.ConfirmationStage", b =>
-                {
-                    b.HasOne("SystemePlacement.Web.Models.Stage", "Stage")
-                        .WithMany("Confirmations")
-                        .HasForeignKey("IdStage")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("SystemePlacement.Web.Models.Utilisateur", "Utilisateur")
-                        .WithMany()
-                        .HasForeignKey("IdUtilisateur")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Stage");
-
-                    b.Navigation("Utilisateur");
-                });
-
             modelBuilder.Entity("SystemePlacement.Web.Models.DemandeStage", b =>
                 {
                     b.HasOne("SystemePlacement.Web.Models.Etudiant", null)
@@ -1166,17 +898,6 @@ namespace SystemePlacement.Web.Migrations
                     b.Navigation("Utilisateur");
                 });
 
-            modelBuilder.Entity("SystemePlacement.Web.Models.Notification", b =>
-                {
-                    b.HasOne("SystemePlacement.Web.Models.Utilisateur", "Utilisateur")
-                        .WithMany()
-                        .HasForeignKey("IdUtilisateur")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Utilisateur");
-                });
-
             modelBuilder.Entity("SystemePlacement.Web.Models.Offre", b =>
                 {
                     b.HasOne("SystemePlacement.Web.Models.Employeur", "Employeur")
@@ -1207,46 +928,6 @@ namespace SystemePlacement.Web.Migrations
                     b.Navigation("Offre");
                 });
 
-            modelBuilder.Entity("SystemePlacement.Web.Models.OffreStageDirecte", b =>
-                {
-                    b.HasOne("SystemePlacement.Web.Models.Candidature", "Candidature")
-                        .WithMany()
-                        .HasForeignKey("IdCandidature")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("SystemePlacement.Web.Models.DemandeStage", "DemandeStage")
-                        .WithMany()
-                        .HasForeignKey("IdDemandeStage")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("SystemePlacement.Web.Models.Employeur", "Employeur")
-                        .WithMany()
-                        .HasForeignKey("IdEmployeur")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("SystemePlacement.Web.Models.Etudiant", "Etudiant")
-                        .WithMany()
-                        .HasForeignKey("IdEtudiant")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("SystemePlacement.Web.Models.OffreStage", "OffreStage")
-                        .WithMany()
-                        .HasForeignKey("IdOffreStage")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("Candidature");
-
-                    b.Navigation("DemandeStage");
-
-                    b.Navigation("Employeur");
-
-                    b.Navigation("Etudiant");
-
-                    b.Navigation("OffreStage");
-                });
-
             modelBuilder.Entity("SystemePlacement.Web.Models.ResponsableStage", b =>
                 {
                     b.HasOne("SystemePlacement.Web.Models.Utilisateur", "Utilisateur")
@@ -1256,24 +937,6 @@ namespace SystemePlacement.Web.Migrations
                         .IsRequired();
 
                     b.Navigation("Utilisateur");
-                });
-
-            modelBuilder.Entity("SystemePlacement.Web.Models.Stage", b =>
-                {
-                    b.HasOne("SystemePlacement.Web.Models.Etudiant", "Etudiant")
-                        .WithMany()
-                        .HasForeignKey("IdEtudiant")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("SystemePlacement.Web.Models.Offre", "Offre")
-                        .WithMany()
-                        .HasForeignKey("IdOffre")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("Etudiant");
-
-                    b.Navigation("Offre");
                 });
 
             modelBuilder.Entity("SystemePlacement.Web.Models.Utilisateur", b =>
@@ -1328,11 +991,6 @@ namespace SystemePlacement.Web.Migrations
             modelBuilder.Entity("SystemePlacement.Web.Models.Role", b =>
                 {
                     b.Navigation("Utilisateurs");
-                });
-
-            modelBuilder.Entity("SystemePlacement.Web.Models.Stage", b =>
-                {
-                    b.Navigation("Confirmations");
                 });
 
             modelBuilder.Entity("SystemePlacement.Web.Models.Utilisateur", b =>

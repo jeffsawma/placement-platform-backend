@@ -89,8 +89,25 @@ public class CandidaturesController : ControllerBase
         int idCandidature,
         [FromBody] ChangerStatutCandidatureRequest request)
     {
-        var succes = await _service.ChangerStatutAsync(idCandidature, request.Statut);
+        var succes = await _service.ChangerStatutAsync(idCandidature, request.Statut, request.Message);
         return succes ? NoContent() : NotFound();
+    }
+
+    // Dev 2: US-16: l'employeur confirme un emploi afin d'officialiser l'embauche de l'etudiant
+    [HttpPost("{idCandidature:int}/confirmer-emploi")]
+    [Authorize(Roles = "Employeur,Administrateur,SuperAdministrateur")]
+    public async Task<IActionResult> ConfirmerEmploi(
+        int idCandidature,
+        [FromBody] ConfirmerEmploiRequest request)
+    {
+        var succes = await _service.ConfirmerEmploiAsync(idCandidature, request.Message);
+
+        return succes
+            ? NoContent()
+            : BadRequest(new
+            {
+                message = "Confirmation d'emploi impossible: candidature introuvable, offre non liée à un emploi, ou employeur non autorisé."
+            });
     }
 
     // Nouvelle route Dev3 : telecharger le CV ou la lettre de motivation.

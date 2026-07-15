@@ -28,4 +28,10 @@ public class DemandesStageController : ControllerBase
     [HttpGet("mes")]
     public async Task<IActionResult> MesDemandes()
         => Ok(await _service.GetMesDemandesAsync());
+
+    // Reception : les employeurs/admins consultent les demandes d'un domaine.
+    [HttpGet("domaine/{idDomaine:int}")]
+    [Authorize(Roles = "Employeur,Administrateur,SuperAdministrateur")]
+    public async Task<IActionResult> DemandesParDomaine(int idDomaine)
+        => Ok(await _service.GetDemandesParDomaineAsync(idDomaine));
 }

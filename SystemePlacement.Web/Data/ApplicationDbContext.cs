@@ -10,66 +10,73 @@ public class ApplicationDbContext : DbContext
     {
     }
 
-<<<<<<< Updated upstream
+
     // Dev 1 - Authentification, utilisateurs et r�les
-=======
+
     // Dev 1 - Authentification, utilisateurs et roles
->>>>>>> Stashed changes
+
+    // Dev 1 - Authentification, Utilisateurs et Roles
+
     public DbSet<Role> Roles { get; set; }
-
     public DbSet<Utilisateur> Utilisateurs { get; set; }
-
     public DbSet<Administrateur> Administrateurs { get; set; }
-
     public DbSet<Etudiant> Etudiants { get; set; }
-
     public DbSet<Employeur> Employeurs { get; set; }
-
     public DbSet<ResponsableStage> ResponsablesStage { get; set; }
 
-<<<<<<< Updated upstream
-=======
+
+
+
     // Dev 1 - Sprint 2
->>>>>>> Stashed changes
+
+
+
     public DbSet<DemarcheSuivi> DemarchesSuivi => Set<DemarcheSuivi>();
     public DbSet<Stage> Stages => Set<Stage>();
     public DbSet<ConfirmationStage> ConfirmationsStage => Set<ConfirmationStage>();
 
-<<<<<<< Updated upstream
+
     // Dev 2 - Param�trage, collèges et domaines d'études
-=======
+
     // Dev 2 - Parametrage, colleges et domaines d'etudes
->>>>>>> Stashed changes
+
     public DbSet<College> Colleges { get; set; }
 
+
+    // Dev 2 - Collèges, Domaines d'études, Offres de stage directes
+    public DbSet<College> Colleges { get; set; }
     public DbSet<DomaineEtude> DomainesEtudes { get; set; }
+    public DbSet<OffreStageDirecte> OffresStageDirectes { get; set; }
 
-<<<<<<< Updated upstream
 
-=======
->>>>>>> Stashed changes
     // Dev 3 - Offres
+
+    // Dev 3 - Offres, Offre de domaines, Entreprises
+
     public DbSet<Offre> Offres { get; set; }
-
     public DbSet<OffreDomaine> OffreDomaines { get; set; }
-
     public DbSet<Entreprise> Entreprises { get; set; }
 
-<<<<<<< Updated upstream
+
     // Dev 4 - Candidatures
-=======
+
     // Dev 4 - Candidatures, documents et demandes de stage
->>>>>>> Stashed changes
+
     public DbSet<Candidature> Candidatures { get; set; }
 
-<<<<<<< Updated upstream
-    public DbSet<CandidatureDocument> CandidatureDocuments { get; set; }
 
+
+    // Dev 4 - Candidatures, Documents pour une candidature, Demandes de stage
+    public DbSet<Candidature> Candidatures { get; set; }
+
+    public DbSet<CandidatureDocument> CandidatureDocuments { get; set; }
     public DbSet<DemandeStage> DemandesStage { get; set; }
-=======
+
     // Notifications
     public DbSet<Notification> Notifications { get; set; }
->>>>>>> Stashed changes
+
+
+    public DbSet<Notification> Notifications { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
