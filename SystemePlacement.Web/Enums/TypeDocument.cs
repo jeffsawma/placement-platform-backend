@@ -1,4 +1,4 @@
-namespace SystemePlacement.Web.Enums;
+﻿namespace SystemePlacement.Web.Enums;
 
 public enum TypeDocument
 {

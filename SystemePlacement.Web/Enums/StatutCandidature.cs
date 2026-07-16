@@ -4,6 +4,9 @@ public enum StatutCandidature
 {
     EnAttente,
     Vue,
+    Preselection,
+    Entrevue,
     Acceptee,
-    Refusee
+    Refusee,
+    Retiree
 }

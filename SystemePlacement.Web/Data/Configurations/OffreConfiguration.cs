@@ -7,20 +7,20 @@ namespace SystemePlacement.Web.Data.Configurations;
 
 /// <summary>
 /// Configuration Table-Per-Hierarchy pour Offre / OffreEmploi / OffreStage.
-/// Toutes les sous-classes partagent la table OFFRE ; le discriminant est la
+/// Toutes les sous-classes partagent la table offres ; le discriminant est la
 /// colonne type_offre.
 /// </summary>
 public class OffreConfiguration : IEntityTypeConfiguration<Offre>
 {
     public void Configure(EntityTypeBuilder<Offre> builder)
     {
-        builder.ToTable("OFFRE");
+        builder.ToTable("offres");
 
         builder.HasKey(o => o.IdOffre);
 
         builder.Property(o => o.IdOffre)
             .HasColumnName("id_offre")
-            .UseIdentityColumn();
+            .ValueGeneratedOnAdd();
 
         builder.Property(o => o.Titre)
             .IsRequired()
@@ -68,9 +68,9 @@ public class OffreConfiguration : IEntityTypeConfiguration<Offre>
             .HasForeignKey(o => o.IdEmployeur)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // TPH discriminant = colonne type_offre
+        // TPH discriminant = colonne type_offre.
+        // Offre est abstraite, donc seules les classes concretes ont une valeur.
         builder.HasDiscriminator(o => o.TypeOffre)
-            .HasValue<Offre>(TypeOffre.Emploi)        // fallback (ne devrait pas arriver)
             .HasValue<OffreEmploi>(TypeOffre.Emploi)
             .HasValue<OffreStage>(TypeOffre.Stage);
 

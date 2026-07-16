@@ -8,7 +8,7 @@ public class OffreDomaineConfiguration : IEntityTypeConfiguration<OffreDomaine>
 {
     public void Configure(EntityTypeBuilder<OffreDomaine> builder)
     {
-        builder.ToTable("OFFRE_DOMAINE");
+        builder.ToTable("offre_domaines");
 
         builder.HasKey(od => new { od.IdOffre, od.IdDomaine });
 

@@ -17,11 +17,36 @@ public class OffreService : IOffreService
         _currentUser = currentUser;
     }
 
-    // ── Lecture ──────────────────────────────────────────────────────────────
-
-    public async Task<IReadOnlyList<OffreResumeeResponse>> GetAllAsync(TypeOffre? type, StatutOffre? statut)
+    public async Task<IReadOnlyList<OffreResumeeResponse>> GetAllAsync(
+        TypeOffre? type,
+        StatutOffre? statut,
+        int? idDomaine = null,
+        string? lieu = null,
+        string? motsCles = null)
     {
-        var offres = await _repository.GetAllAsync(type, statut);
+        // Liste publique : utilisee pour la recherche d'offres.
+        var offres = await _repository.GetAllAsync(type, statut, idDomaine, lieu, motsCles);
+        return offres.Select(MapResumee).ToList();
+    }
+
+    public async Task<IReadOnlyList<OffreResumeeResponse>> GetMesOffresAsync()
+    {
+        // Les admins peuvent voir toutes les offres.
+        if (_currentUser.Role == "Administrateur" || _currentUser.Role == "SuperAdministrateur")
+        {
+            var toutesLesOffres = await _repository.GetAllAsync();
+            return toutesLesOffres.Select(MapResumee).ToList();
+        }
+
+        // Un employeur voit seulement les offres reliees a son profil employeur.
+        var idEmployeur = await ObtenirIdEmployeurAsync();
+
+        if (idEmployeur is null)
+        {
+            return Array.Empty<OffreResumeeResponse>();
+        }
+
+        var offres = await _repository.GetByEmployeurAsync(idEmployeur.Value);
         return offres.Select(MapResumee).ToList();
     }
 
@@ -33,12 +58,10 @@ public class OffreService : IOffreService
         return offre switch
         {
             OffreEmploi emploi => MapEmploi(emploi),
-            OffreStage stage   => MapStage(stage),
-            _                  => MapResumee(offre)
+            OffreStage stage => MapStage(stage),
+            _ => MapResumee(offre)
         };
     }
-
-    // ── Créer emploi (US-07) ─────────────────────────────────────────────────
 
     public async Task<OffreEmploiResponse?> CreerEmploiAsync(CreerOffreEmploiRequest req)
     {
@@ -47,19 +70,19 @@ public class OffreService : IOffreService
 
         var offre = new OffreEmploi
         {
-            Titre           = req.Titre,
-            Description     = req.Description,
-            Ville           = req.Ville,
-            Adresse         = req.Adresse,
-            TypeOffre       = TypeOffre.Emploi,
-            Statut          = StatutOffre.Active,
-            DatePublication  = DateTime.UtcNow,
-            DateExpiration  = req.DateExpiration,
-            IdEmployeur     = idEmployeur.Value,
-            TypeContrat     = req.TypeContrat,
-            SalaireMin      = req.SalaireMin,
-            SalaireMax      = req.SalaireMax,
-            TeleTravail     = req.TeleTravail
+            Titre = req.Titre,
+            Description = req.Description,
+            Ville = req.Ville,
+            Adresse = req.Adresse,
+            TypeOffre = TypeOffre.Emploi,
+            Statut = StatutOffre.Active,
+            DatePublication = DateTime.UtcNow,
+            DateExpiration = req.DateExpiration,
+            IdEmployeur = idEmployeur.Value,
+            TypeContrat = req.TypeContrat,
+            SalaireMin = req.SalaireMin,
+            SalaireMax = req.SalaireMax,
+            TeleTravail = req.TeleTravail
         };
 
         await _repository.AddAsync(offre);
@@ -71,8 +94,6 @@ public class OffreService : IOffreService
         return result is null ? null : MapEmploi(result);
     }
 
-    // ── Créer stage (US-07) ──────────────────────────────────────────────────
-
     public async Task<OffreStageResponse?> CreerStageAsync(CreerOffreStageRequest req)
     {
         var idEmployeur = await ObtenirIdEmployeurAsync();
@@ -80,20 +101,20 @@ public class OffreService : IOffreService
 
         var offre = new OffreStage
         {
-            Titre                  = req.Titre,
-            Description            = req.Description,
-            Ville                  = req.Ville,
-            Adresse                = req.Adresse,
-            TypeOffre              = TypeOffre.Stage,
-            Statut                 = StatutOffre.Active,
-            DatePublication         = DateTime.UtcNow,
-            DateExpiration         = req.DateExpiration,
-            IdEmployeur            = idEmployeur.Value,
-            DateDebutStage         = req.DateDebutStage,
-            DateFinStage           = req.DateFinStage,
-            DureeHeuresParSemaine  = req.DureeHeuresParSemaine,
-            Remuneration           = req.Remuneration,
-            Session                = req.Session
+            Titre = req.Titre,
+            Description = req.Description,
+            Ville = req.Ville,
+            Adresse = req.Adresse,
+            TypeOffre = TypeOffre.Stage,
+            Statut = StatutOffre.Active,
+            DatePublication = DateTime.UtcNow,
+            DateExpiration = req.DateExpiration,
+            IdEmployeur = idEmployeur.Value,
+            DateDebutStage = req.DateDebutStage,
+            DateFinStage = req.DateFinStage,
+            DureeHeuresParSemaine = req.DureeHeuresParSemaine,
+            Remuneration = req.Remuneration,
+            Session = req.Session
         };
 
         await _repository.AddAsync(offre);
@@ -105,8 +126,6 @@ public class OffreService : IOffreService
         return result is null ? null : MapStage(result);
     }
 
-    // ── Modifier emploi (US-08) ──────────────────────────────────────────────
-
     public async Task<OffreEmploiResponse?> ModifierEmploiAsync(int idOffre, ModifierOffreEmploiRequest req)
     {
         var offre = await _repository.GetByIdAsync(idOffre) as OffreEmploi;
@@ -114,16 +133,16 @@ public class OffreService : IOffreService
 
         if (!await EstProprietaireOuAdmin(offre)) return null;
 
-        offre.Titre          = req.Titre;
-        offre.Description    = req.Description;
-        offre.Ville          = req.Ville;
-        offre.Adresse        = req.Adresse;
+        offre.Titre = req.Titre;
+        offre.Description = req.Description;
+        offre.Ville = req.Ville;
+        offre.Adresse = req.Adresse;
         offre.DateExpiration = req.DateExpiration;
-        offre.Statut         = req.Statut;
-        offre.TypeContrat    = req.TypeContrat;
-        offre.SalaireMin     = req.SalaireMin;
-        offre.SalaireMax     = req.SalaireMax;
-        offre.TeleTravail    = req.TeleTravail;
+        offre.Statut = req.Statut;
+        offre.TypeContrat = req.TypeContrat;
+        offre.SalaireMin = req.SalaireMin;
+        offre.SalaireMax = req.SalaireMax;
+        offre.TeleTravail = req.TeleTravail;
 
         _repository.Update(offre);
         await SynchroniserDomainesAsync(idOffre, req.IdsDomaines);
@@ -133,8 +152,6 @@ public class OffreService : IOffreService
         return result is null ? null : MapEmploi(result);
     }
 
-    // ── Modifier stage (US-09) ───────────────────────────────────────────────
-
     public async Task<OffreStageResponse?> ModifierStageAsync(int idOffre, ModifierOffreStageRequest req)
     {
         var offre = await _repository.GetByIdAsync(idOffre) as OffreStage;
@@ -142,17 +159,17 @@ public class OffreService : IOffreService
 
         if (!await EstProprietaireOuAdmin(offre)) return null;
 
-        offre.Titre                 = req.Titre;
-        offre.Description           = req.Description;
-        offre.Ville                 = req.Ville;
-        offre.Adresse               = req.Adresse;
-        offre.DateExpiration        = req.DateExpiration;
-        offre.Statut                = req.Statut;
-        offre.DateDebutStage        = req.DateDebutStage;
-        offre.DateFinStage          = req.DateFinStage;
+        offre.Titre = req.Titre;
+        offre.Description = req.Description;
+        offre.Ville = req.Ville;
+        offre.Adresse = req.Adresse;
+        offre.DateExpiration = req.DateExpiration;
+        offre.Statut = req.Statut;
+        offre.DateDebutStage = req.DateDebutStage;
+        offre.DateFinStage = req.DateFinStage;
         offre.DureeHeuresParSemaine = req.DureeHeuresParSemaine;
-        offre.Remuneration          = req.Remuneration;
-        offre.Session               = req.Session;
+        offre.Remuneration = req.Remuneration;
+        offre.Session = req.Session;
 
         _repository.Update(offre);
         await SynchroniserDomainesAsync(idOffre, req.IdsDomaines);
@@ -161,8 +178,6 @@ public class OffreService : IOffreService
         var result = await _repository.GetByIdAsync(idOffre) as OffreStage;
         return result is null ? null : MapStage(result);
     }
-
-    // ── Supprimer (US-10) ────────────────────────────────────────────────────
 
     public async Task<bool> SupprimerAsync(int idOffre)
     {
@@ -176,19 +191,22 @@ public class OffreService : IOffreService
         return true;
     }
 
-    // ── Helpers privés ───────────────────────────────────────────────────────
-
     private async Task<int?> ObtenirIdEmployeurAsync()
     {
         if (!_currentUser.IdUtilisateur.HasValue) return null;
+
         return await _repository.GetIdEmployeurByUtilisateurAsync(_currentUser.IdUtilisateur.Value);
     }
 
     private async Task<bool> EstProprietaireOuAdmin(Offre offre)
     {
-        // Un admin peut tout modifier ; un employeur ne peut modifier que ses propres offres
-        if (_currentUser.Role == "Administrateur") return true;
+        // Les admins peuvent modifier toutes les offres.
+        if (_currentUser.Role == "Administrateur" || _currentUser.Role == "SuperAdministrateur")
+        {
+            return true;
+        }
 
+        // Un employeur peut modifier seulement ses propres offres.
         var idEmployeur = await ObtenirIdEmployeurAsync();
         return idEmployeur.HasValue && offre.IdEmployeur == idEmployeur.Value;
     }
@@ -202,81 +220,80 @@ public class OffreService : IOffreService
         {
             var nouveaux = idsDomaines.Select(idDomaine => new OffreDomaine
             {
-                IdOffre   = idOffre,
+                IdOffre = idOffre,
                 IdDomaine = idDomaine
             });
+
             await _repository.AddDomainesAsync(nouveaux);
         }
 
         await _repository.SaveChangesAsync();
     }
 
-    // ── Mappers ──────────────────────────────────────────────────────────────
-
     private static OffreResumeeResponse MapResumee(Offre o) => new()
     {
-        IdOffre         = o.IdOffre,
-        Titre           = o.Titre,
-        Ville           = o.Ville,
-        TypeOffre       = o.TypeOffre,
-        Statut          = o.Statut,
-        DatePublication  = o.DatePublication,
-        DateExpiration  = o.DateExpiration,
-        NomEmployeur    = o.Employeur?.Utilisateur is { } u
-                            ? $"{u.Prenom} {u.Nom}"
-                            : string.Empty,
-        Domaines        = o.OffreDomaines
-                            .Select(od => od.DomaineEtude?.Nom ?? string.Empty)
-                            .Where(n => n != string.Empty)
-                            .ToList()
+        IdOffre = o.IdOffre,
+        Titre = o.Titre,
+        Ville = o.Ville,
+        TypeOffre = o.TypeOffre,
+        Statut = o.Statut,
+        DatePublication = o.DatePublication,
+        DateExpiration = o.DateExpiration,
+        NomEmployeur = o.Employeur?.Utilisateur is { } u
+            ? $"{u.Prenom} {u.Nom}"
+            : string.Empty,
+        Domaines = o.OffreDomaines
+            .Select(od => od.DomaineEtude?.Nom ?? string.Empty)
+            .Where(n => n != string.Empty)
+            .ToList()
     };
 
     private static OffreEmploiResponse MapEmploi(OffreEmploi o) => new()
     {
-        IdOffre         = o.IdOffre,
-        Titre           = o.Titre,
-        Description     = o.Description,
-        Ville           = o.Ville,
-        Adresse         = o.Adresse,
-        TypeOffre       = o.TypeOffre,
-        Statut          = o.Statut,
-        DatePublication  = o.DatePublication,
-        DateExpiration  = o.DateExpiration,
-        NomEmployeur    = o.Employeur?.Utilisateur is { } u
-                            ? $"{u.Prenom} {u.Nom}"
-                            : string.Empty,
-        Domaines        = o.OffreDomaines
-                            .Select(od => od.DomaineEtude?.Nom ?? string.Empty)
-                            .Where(n => n != string.Empty)
-                            .ToList(),
-        TypeContrat     = o.TypeContrat,
-        SalaireMin      = o.SalaireMin,
-        SalaireMax      = o.SalaireMax,
-        TeleTravail     = o.TeleTravail
+        IdOffre = o.IdOffre,
+        Titre = o.Titre,
+        Description = o.Description,
+        Ville = o.Ville,
+        Adresse = o.Adresse,
+        TypeOffre = o.TypeOffre,
+        Statut = o.Statut,
+        DatePublication = o.DatePublication,
+        DateExpiration = o.DateExpiration,
+        NomEmployeur = o.Employeur?.Utilisateur is { } u
+            ? $"{u.Prenom} {u.Nom}"
+            : string.Empty,
+        Domaines = o.OffreDomaines
+            .Select(od => od.DomaineEtude?.Nom ?? string.Empty)
+            .Where(n => n != string.Empty)
+            .ToList(),
+        TypeContrat = o.TypeContrat,
+        SalaireMin = o.SalaireMin,
+        SalaireMax = o.SalaireMax,
+        TeleTravail = o.TeleTravail
     };
 
     private static OffreStageResponse MapStage(OffreStage o) => new()
     {
-        IdOffre                = o.IdOffre,
-        Titre                  = o.Titre,
-        Description            = o.Description,
-        Ville                  = o.Ville,
-        Adresse                = o.Adresse,
-        TypeOffre              = o.TypeOffre,
-        Statut                 = o.Statut,
-        DatePublication         = o.DatePublication,
-        DateExpiration         = o.DateExpiration,
-        NomEmployeur           = o.Employeur?.Utilisateur is { } u
-                                    ? $"{u.Prenom} {u.Nom}"
-                                    : string.Empty,
-        Domaines               = o.OffreDomaines
-                                    .Select(od => od.DomaineEtude?.Nom ?? string.Empty)
-                                    .Where(n => n != string.Empty)
-                                    .ToList(),
-        DateDebutStage         = o.DateDebutStage,
-        DateFinStage           = o.DateFinStage,
-        DureeHeuresParSemaine  = o.DureeHeuresParSemaine,
-        Remuneration           = o.Remuneration,
-        Session                = o.Session
+        IdOffre = o.IdOffre,
+        Titre = o.Titre,
+        Description = o.Description,
+        Ville = o.Ville,
+        Adresse = o.Adresse,
+        TypeOffre = o.TypeOffre,
+        Statut = o.Statut,
+        DatePublication = o.DatePublication,
+        DateExpiration = o.DateExpiration,
+        NomEmployeur = o.Employeur?.Utilisateur is { } u
+            ? $"{u.Prenom} {u.Nom}"
+            : string.Empty,
+        Domaines = o.OffreDomaines
+            .Select(od => od.DomaineEtude?.Nom ?? string.Empty)
+            .Where(n => n != string.Empty)
+            .ToList(),
+        DateDebutStage = o.DateDebutStage,
+        DateFinStage = o.DateFinStage,
+        DureeHeuresParSemaine = o.DureeHeuresParSemaine,
+        Remuneration = o.Remuneration,
+        Session = o.Session
     };
 }

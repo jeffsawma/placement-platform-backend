@@ -9,33 +9,44 @@ public class CandidatureConfiguration : IEntityTypeConfiguration<Candidature>
 {
     public void Configure(EntityTypeBuilder<Candidature> builder)
     {
-        builder.ToTable("CANDIDATURE");
+        builder.ToTable("candidatures");
 
         builder.HasKey(c => c.IdCandidature);
 
         builder.Property(c => c.IdCandidature)
-            .HasColumnName("id_candidature")
-            .UseIdentityColumn();
+            .HasColumnName("id_candidature");
 
         builder.Property(c => c.IdOffre)
-            .HasColumnName("id_offre");
+            .HasColumnName("id_offre")
+            .IsRequired();
 
         builder.Property(c => c.IdEtudiant)
-            .HasColumnName("id_etudiant");
-
-        builder.Property(c => c.Statut)
-            .IsRequired()
-            .HasMaxLength(20)
-            .HasConversion<string>()
-            .HasDefaultValue(StatutCandidature.EnAttente)
-            .HasColumnName("statut");
+            .HasColumnName("id_etudiant")
+            .IsRequired();
 
         builder.Property(c => c.DateCandidature)
-            .HasColumnName("date_candidature");
+            .HasColumnName("date_candidature")
+            .IsRequired();
+
+        builder.Property(c => c.Statut)
+            .HasColumnName("statut")
+            .HasConversion<string>()
+            .HasMaxLength(30)
+            .HasDefaultValue(StatutCandidature.EnAttente)
+            .IsRequired();
+
+        builder.Property(c => c.CvUrl)
+            .HasColumnName("cv_url")
+            .HasMaxLength(500);
+
+        builder.Property(c => c.LettreMotivation)
+            .HasColumnName("lettre_motivation");
 
         builder.Property(c => c.MessageMotivation)
-            .HasColumnType("longtext")
             .HasColumnName("message_motivation");
+
+        builder.HasIndex(c => new { c.IdOffre, c.IdEtudiant })
+            .IsUnique();
 
         builder.HasOne(c => c.Offre)
             .WithMany(o => o.Candidatures)
@@ -46,57 +57,5 @@ public class CandidatureConfiguration : IEntityTypeConfiguration<Candidature>
             .WithMany()
             .HasForeignKey(c => c.IdEtudiant)
             .OnDelete(DeleteBehavior.Restrict);
-
-        builder.HasIndex(c => c.IdOffre).HasDatabaseName("idx_candidature_offre");
-        builder.HasIndex(c => c.IdEtudiant).HasDatabaseName("idx_candidature_etudiant");
-        builder.HasIndex(c => new { c.IdOffre, c.IdEtudiant }).IsUnique();
-    }
-}
-
-public class CandidatureDocumentConfiguration : IEntityTypeConfiguration<CandidatureDocument>
-{
-    public void Configure(EntityTypeBuilder<CandidatureDocument> builder)
-    {
-        builder.ToTable("CANDIDATURE_DOCUMENT");
-
-        builder.HasKey(d => d.IdDocument);
-
-        builder.Property(d => d.IdDocument)
-            .HasColumnName("id_document")
-            .UseIdentityColumn();
-
-        builder.Property(d => d.IdCandidature)
-            .HasColumnName("id_candidature");
-
-        builder.Property(d => d.TypeDocument)
-            .IsRequired()
-            .HasMaxLength(30)
-            .HasConversion<string>()
-            .HasColumnName("type_document");
-
-        builder.Property(d => d.NomFichier)
-            .IsRequired()
-            .HasMaxLength(255)
-            .HasColumnName("nom_fichier");
-
-        builder.Property(d => d.CheminFichier)
-            .IsRequired()
-            .HasMaxLength(500)
-            .HasColumnName("chemin_fichier");
-
-        builder.Property(d => d.ContentType)
-            .HasMaxLength(100)
-            .HasColumnName("content_type");
-
-        builder.Property(d => d.TailleFichier)
-            .HasColumnName("taille_fichier");
-
-        builder.Property(d => d.DateUpload)
-            .HasColumnName("date_upload");
-
-        builder.HasOne(d => d.Candidature)
-            .WithMany(c => c.Documents)
-            .HasForeignKey(d => d.IdCandidature)
-            .OnDelete(DeleteBehavior.Cascade);
     }
 }

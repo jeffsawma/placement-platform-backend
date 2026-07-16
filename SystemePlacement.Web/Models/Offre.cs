@@ -2,7 +2,7 @@ using SystemePlacement.Web.Enums;
 
 namespace SystemePlacement.Web.Models;
 
-public class Offre
+public abstract class Offre
 {
     public int IdOffre { get; set; }
 

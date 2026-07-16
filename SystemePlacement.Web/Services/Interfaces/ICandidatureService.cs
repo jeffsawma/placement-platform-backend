@@ -1,3 +1,4 @@
+
 using SystemePlacement.Web.DTOs.Candidatures;
 using SystemePlacement.Web.Enums;
 
@@ -5,15 +6,19 @@ namespace SystemePlacement.Web.Services.Interfaces;
 
 public interface ICandidatureService
 {
-    // US-10 : liste des candidatures d'une offre
+    Task<IReadOnlyList<CandidatureResponse>> GetParOffreAsync(int idOffre);
+    Task<CandidatureResponse?> GetAsync(int idCandidature);
+    Task<CandidatureResponse?> PostulerAsync(PostulerRequest request);
+    Task<bool> ChangerStatutAsync(int idCandidature, ChangerStatutRequest request);
+
     Task<IReadOnlyList<CandidatureResumeeResponse>> GetCandidaturesOffreAsync(int idOffre);
-
-    // Detail d'une candidature
+    Task<IReadOnlyList<CandidatureResumeeResponse>> GetCandidaturesParDomaineAsync(int idDomaine);
+    Task<IReadOnlyList<CandidatureResumeeResponse>> GetMesCandidaturesAsync();
+    Task<bool> MettreAJourAsync(int idCandidature, MettreAJourCandidatureRequest request);
+    Task<bool> RetirerAsync(int idCandidature);
     Task<CandidatureDetailResponse?> GetDetailAsync(int idCandidature);
-
-    // US-10 : changer le statut d'une candidature
-    Task<bool> ChangerStatutAsync(int idCandidature, StatutCandidature statut);
-
-    // US-12 : obtenir le fichier pour telechargement
+    Task<bool> ChangerStatutAsync(int idCandidature, StatutCandidature statut, string? message = null);
     Task<(byte[] Contenu, string ContentType, string NomFichier)?> TelechargerDocumentAsync(int idDocument);
+    Task<bool> ConfirmerEmploiAsync(int idCandidature, string? message = null);
 }
+

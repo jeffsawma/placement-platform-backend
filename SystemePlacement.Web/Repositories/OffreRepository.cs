@@ -14,7 +14,7 @@ public class OffreRepository : IOffreRepository
 
     // ── Lecture ──────────────────────────────────────────────────────────────
 
-    public Task<List<Offre>> GetAllAsync(TypeOffre? type = null, StatutOffre? statut = null)
+    public Task<List<Offre>> GetAllAsync(TypeOffre? type = null, StatutOffre? statut = null, int? idDomaine = null, string? lieu = null, string? motsCles = null)
     {
         IQueryable<Offre> query = _context.Offres
             .AsNoTracking()
@@ -28,6 +28,15 @@ public class OffreRepository : IOffreRepository
 
         if (statut.HasValue)
             query = query.Where(o => o.Statut == statut.Value);
+
+        if (idDomaine.HasValue)
+            query = query.Where(o => o.OffreDomaines.Any(od => od.IdDomaine == idDomaine.Value));
+
+        if (!string.IsNullOrWhiteSpace(lieu))
+            query = query.Where(o => o.Ville.Contains(lieu) || (o.Adresse != null && o.Adresse.Contains(lieu)));
+
+        if (!string.IsNullOrWhiteSpace(motsCles))
+            query = query.Where(o => o.Titre.Contains(motsCles) || o.Description.Contains(motsCles));
 
         return query
             .OrderByDescending(o => o.DatePublication)

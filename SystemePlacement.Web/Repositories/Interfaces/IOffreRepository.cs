@@ -6,7 +6,7 @@ namespace SystemePlacement.Web.Repositories.Interfaces;
 public interface IOffreRepository
 {
     // Lecture
-    Task<List<Offre>> GetAllAsync(TypeOffre? type = null, StatutOffre? statut = null);
+    Task<List<Offre>> GetAllAsync(TypeOffre? type = null, StatutOffre? statut = null, int? idDomaine = null, string? lieu = null, string? motsCles = null);
     Task<List<Offre>> GetByEmployeurAsync(int idEmployeur);
     Task<Offre?> GetByIdAsync(int idOffre);
     Task<int?> GetIdEmployeurByUtilisateurAsync(int idUtilisateur);

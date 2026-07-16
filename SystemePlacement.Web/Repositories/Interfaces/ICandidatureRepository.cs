@@ -4,16 +4,16 @@ namespace SystemePlacement.Web.Repositories.Interfaces;
 
 public interface ICandidatureRepository
 {
-    // US-10 : Candidatures d'une offre
     Task<List<Candidature>> GetByOffreAsync(int idOffre);
-
-    // Detail d'une candidature
+    Task<List<Candidature>> GetByEtudiantAsync(int idEtudiant);
+    Task<List<Candidature>> GetByDomaineAsync(int idDomaine);
     Task<Candidature?> GetByIdAsync(int idCandidature);
 
-    // US-12 : Document d'une candidature
-    Task<CandidatureDocument?> GetDocumentAsync(int idDocument);
+    Task<bool> ExistsAsync(int idOffre, int idEtudiant);
+    Task<int?> GetIdEtudiantByUtilisateurAsync(int idUtilisateur);
+    Task AddAsync(Candidature candidature);
 
-    // Changer statut
+    Task<CandidatureDocument?> GetDocumentAsync(int idDocument);
     void Update(Candidature candidature);
 
     Task SaveChangesAsync();
