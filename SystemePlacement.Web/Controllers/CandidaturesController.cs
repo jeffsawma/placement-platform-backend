@@ -14,8 +14,6 @@ public class CandidaturesController : ControllerBase
 
     public CandidaturesController(ICandidatureService service) => _service = service;
 
-    // GET /api/offres/{idOffre}/candidatures
-    // US-10 : liste des candidatures recues pour une offre
     // Ancienne route : permet de consulter les candidatures d'une offre.
     [HttpGet("offre/{idOffre:int}")]
     public async Task<IActionResult> GetParOffre(int idOffre)
@@ -31,9 +29,6 @@ public class CandidaturesController : ControllerBase
         return Ok(candidatures);
     }
 
-    // GET /api/candidatures/{id}
-    // Detail d'une candidature
-    [HttpGet("{idCandidature:int}")]
     // Ancienne route : detail simple d'une candidature.
     [HttpGet("{idCandidature:int}")]
     public async Task<IActionResult> Get(int idCandidature)
@@ -51,20 +46,6 @@ public class CandidaturesController : ControllerBase
         return detail is null ? NotFound() : Ok(detail);
     }
 
-    // PATCH /api/candidatures/{id}/statut
-    // US-10 : changer le statut d'une candidature (Vue, Acceptee, Refusee)
-    [HttpPatch("{idCandidature:int}/statut")]
-    [Authorize(Roles = "Employeur,Administrateur,SuperAdministrateur")]
-    public async Task<IActionResult> ChangerStatut(
-        int idCandidature,
-        [FromBody] ChangerStatutCandidatureRequest request)
-    {
-        var succes = await _service.ChangerStatutAsync(idCandidature, request.Statut);
-        return succes ? NoContent() : NotFound();
-    }
-
-    // GET /api/candidatures/documents/{idDocument}/telecharger
-    // US-12 : telecharger le CV ou la lettre de motivation
     // US-11 : liste des candidatures pour un domaine (employeur).
     [HttpGet("domaine/{idDomaine:int}")]
     [Authorize(Roles = "Employeur,Administrateur,SuperAdministrateur")]
@@ -125,7 +106,7 @@ public class CandidaturesController : ControllerBase
             ? NoContent()
             : BadRequest(new
             {
-                message = "Confirmation d'emploi impossible: candidature introuvable, offre non liÃ©e Ã  un emploi, ou employeur non autorisÃ©."
+                message = "Confirmation d'emploi impossible: candidature introuvable, offre non liée à un emploi, ou employeur non autorisé."
             });
     }
 
