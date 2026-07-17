@@ -15,8 +15,8 @@ public class Candidature
     public string? MessageMotivation { get; set; }
 
     // Added by Dev 2
-    // 'MessageReponseEmployeur' est une propriÃ©tÃ© qui peut contenir un message de rÃ©ponse de l'employeur Ã  la candidature de l'Ã©tudiant
-    // 'DateReponseEmployeur' est une propriÃ©tÃ© qui peut contenir la date Ã  laquelle l'employeur a rÃ©pondu Ã  la candidature de l'Ã©tudiant
+    // 'MessageReponseEmployeur' est une propriété qui peut contenir un message de réponse de l'employeur à la candidature de l'étudiant
+    // 'DateReponseEmployeur' est une propriété qui peut contenir la date à laquelle l'employeur a répondu à la candidature de l'étudiant
     public string? MessageReponseEmployeur { get; set; }
     public DateTime? DateReponseEmployeur { get; set; }
 

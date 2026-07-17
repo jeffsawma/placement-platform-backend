@@ -16,15 +16,6 @@ public class CurrentUserService : ICurrentUserService
     {
         get
         {
-            var val = _httpContextAccessor.HttpContext?.User
-                .FindFirstValue(ClaimTypes.NameIdentifier);
-            return int.TryParse(val, out var id) ? id : null;
-        }
-    }
-
-    public string? Role =>
-        _httpContextAccessor.HttpContext?.User
-            .FindFirstValue(ClaimTypes.Role);
             // Recupere l'id utilisateur dans le token JWT.
             var id = _httpContextAccessor.HttpContext?.User
                 .FindFirstValue(ClaimTypes.NameIdentifier);
