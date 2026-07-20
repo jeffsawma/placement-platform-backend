@@ -16,6 +16,7 @@ public class DemandesStageController : ControllerBase
 
     // US-19 : l'etudiant formule une demande de stage dans un domaine.
     [HttpPost]
+    [Authorize(Roles = "Etudiant")]
     public async Task<IActionResult> Creer([FromBody] CreerDemandeStageRequest request)
     {
         var demande = await _service.CreerAsync(request);
@@ -26,6 +27,7 @@ public class DemandesStageController : ControllerBase
 
     // Demandes de stage de l'etudiant connecte.
     [HttpGet("mes")]
+    [Authorize(Roles = "Etudiant")]
     public async Task<IActionResult> MesDemandes()
         => Ok(await _service.GetMesDemandesAsync());
 

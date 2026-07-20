@@ -54,21 +54,25 @@ public class CandidaturesController : ControllerBase
 
     // Candidatures de l'etudiant connecte.
     [HttpGet("mes")]
+    [Authorize(Roles = "Etudiant")]
     public async Task<IActionResult> MesCandidatures()
         => Ok(await _service.GetMesCandidaturesAsync());
 
     // US-13 : l'etudiant met a jour le message de sa candidature.
     [HttpPut("{idCandidature:int}/mes")]
+    [Authorize(Roles = "Etudiant")]
     public async Task<IActionResult> MettreAJour(int idCandidature, [FromBody] MettreAJourCandidatureRequest request)
         => await _service.MettreAJourAsync(idCandidature, request) ? NoContent() : NotFound();
 
     // US-13 : l'etudiant retire sa candidature.
     [HttpPost("{idCandidature:int}/retirer")]
+    [Authorize(Roles = "Etudiant")]
     public async Task<IActionResult> Retirer(int idCandidature)
         => await _service.RetirerAsync(idCandidature) ? NoContent() : NotFound();
 
     // Ancienne route : permet a un etudiant de postuler.
     [HttpPost]
+    [Authorize(Roles = "Etudiant")]
     public async Task<IActionResult> Postuler(PostulerRequest request)
     {
         var candidature = await _service.PostulerAsync(request);
@@ -106,7 +110,7 @@ public class CandidaturesController : ControllerBase
             ? NoContent()
             : BadRequest(new
             {
-                message = "Confirmation d'emploi impossible: candidature introuvable, offre non liée à un emploi, ou employeur non autorisé."
+                message = "Confirmation d'emploi impossible: candidature introuvable, offre non liï¿½e ï¿½ un emploi, ou employeur non autorisï¿½."
             });
     }
 
@@ -123,6 +127,7 @@ public class CandidaturesController : ControllerBase
     }
 
     [HttpPost("cv")]
+    [Authorize(Roles = "Etudiant")]
     public async Task<IActionResult> UploadCv(IFormFile fichier)
     {
         if (fichier is null || fichier.Length == 0)
