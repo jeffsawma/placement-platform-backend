@@ -52,7 +52,7 @@ public class ApplicationDbContext : DbContext
     // Dev 3 - Offres
 
     // Dev 3 - Offres, Offre de domaines, Entreprises
-
+public DbSet<Recommandation> Recommandations { get; set; }
     public DbSet<Offre> Offres { get; set; }
     public DbSet<OffreDomaine> OffreDomaines { get; set; }
     public DbSet<Entreprise> Entreprises { get; set; }
