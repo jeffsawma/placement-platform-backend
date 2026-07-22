@@ -47,18 +47,22 @@ public class CandidaturesController : ControllerBase
         => Ok(await _service.GetCandidaturesParDomaineAsync(idDomaine));
 
     [HttpGet("mes")]
+    [Authorize(Roles = "Etudiant")]
     public async Task<IActionResult> MesCandidatures()
         => Ok(await _service.GetMesCandidaturesAsync());
 
     [HttpPut("{idCandidature:int}/mes")]
+    [Authorize(Roles = "Etudiant")]
     public async Task<IActionResult> MettreAJour(int idCandidature, [FromBody] MettreAJourCandidatureRequest request)
         => await _service.MettreAJourAsync(idCandidature, request) ? NoContent() : NotFound();
 
     [HttpPost("{idCandidature:int}/retirer")]
+    [Authorize(Roles = "Etudiant")]
     public async Task<IActionResult> Retirer(int idCandidature)
         => await _service.RetirerAsync(idCandidature) ? NoContent() : NotFound();
 
     [HttpPost]
+    [Authorize(Roles = "Etudiant")]
     public async Task<IActionResult> Postuler(PostulerRequest request)
     {
         var candidature = await _service.PostulerAsync(request);
@@ -105,6 +109,7 @@ public class CandidaturesController : ControllerBase
     }
 
     [HttpPost("cv")]
+    [Authorize(Roles = "Etudiant")]
     public async Task<IActionResult> UploadCv(IFormFile fichier)
     {
         if (fichier is null || fichier.Length == 0)
