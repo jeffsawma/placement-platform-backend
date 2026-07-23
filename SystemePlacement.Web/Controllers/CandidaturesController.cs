@@ -110,7 +110,7 @@ public class CandidaturesController : ControllerBase
             ? NoContent()
             : BadRequest(new
             {
-                message = "Confirmation d'emploi impossible: candidature introuvable, offre non li�e � un emploi, ou employeur non autoris�."
+                message = "Confirmation d'emploi impossible : la candidature doit être acceptée, liée à une offre d'emploi, ne pas être déjà confirmée et appartenir à l'employeur connecté."
             });
     }
 

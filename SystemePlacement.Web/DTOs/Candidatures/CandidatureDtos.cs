@@ -32,6 +32,9 @@ public class CandidatureResponse
     public string? MessageMotivation { get; set; }
     public string? MessageReponseEmployeur { get; set; }
     public DateTime? DateReponseEmployeur { get; set; }
+    public bool EmploiConfirme { get; set; }
+    public string? MessageConfirmationEmploi { get; set; }
+    public DateTime? DateConfirmationEmploi { get; set; }
 }
 
 // Ajout l'id de l'étudiant 'IdEtudiant'
@@ -51,6 +54,9 @@ public class CandidatureResumeeResponse
     public DateTime? DateReponseEmployeur { get; set; }
     public bool ACV { get; set; }
     public bool ALettreMotivation { get; set; }
+    public bool EmploiConfirme { get; set; }
+    public string? MessageConfirmationEmploi { get; set; }
+    public DateTime? DateConfirmationEmploi { get; set; }
 }
 
 public class CandidatureDetailResponse : CandidatureResumeeResponse

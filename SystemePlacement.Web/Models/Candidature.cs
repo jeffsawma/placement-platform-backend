@@ -19,6 +19,11 @@ public class Candidature
     // 'DateReponseEmployeur' est une propriété qui peut contenir la date à laquelle l'employeur a répondu à la candidature de l'étudiant
     public string? MessageReponseEmployeur { get; set; }
     public DateTime? DateReponseEmployeur { get; set; }
+    // Dev 2 - US-16 : confirmation distincte de la réponse à la candidature
+    public bool EmploiConfirme { get; set; }
+    public string? MessageConfirmationEmploi { get; set; }
+    public DateTime? DateConfirmationEmploi { get; set; }
+
 
     public Offre? Offre { get; set; }
     public Etudiant? Etudiant { get; set; }
