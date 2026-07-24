@@ -108,13 +108,18 @@ public class CandidatureService : ICandidatureService
     }
 
     public async Task<bool> ConfirmerEmploiAsync(
-    int idCandidature,
-    string? message = null)
+        int idCandidature,
+        string? message = null)
     {
-        var candidature = await _repository.GetByIdAsync(idCandidature);
+        var candidature =
+            await _repository.GetByIdAsync(idCandidature);
 
-        if (candidature is null || candidature.Offre is null)
+        if (candidature is null ||
+            candidature.Offre is null ||
+            candidature.Etudiant is null)
+        {
             return false;
+        }
 
         // US-16 concerne uniquement les offres d'emploi
         if (candidature.Offre is not OffreEmploi)
@@ -154,6 +159,10 @@ public class CandidatureService : ICandidatureService
 
         _repository.Update(candidature);
         await _repository.SaveChangesAsync();
+
+        await _notification.NotifierUtilisateurAsync(
+            candidature.Etudiant.IdUtilisateur,
+            $"Votre embauche pour l’offre « {candidature.Offre.Titre} » a été confirmée par l’employeur.");
 
         return true;
     }
