@@ -10,6 +10,12 @@ public class PostulerRequest
     public string? LettreMotivation { get; set; }
 }
 
+public class ValidationCandidatureResponse
+{
+    public bool PeutPostuler { get; set; }
+    public string? Message { get; set; }
+}
+
 public class ChangerStatutRequest
 {
     public StatutCandidature Statut { get; set; }
@@ -37,7 +43,7 @@ public class CandidatureResponse
     public DateTime? DateConfirmationEmploi { get; set; }
 }
 
-// Ajout l'id de l'étudiant 'IdEtudiant'
+// Ajout l'id de l'ï¿½tudiant 'IdEtudiant'
 public class CandidatureResumeeResponse
 
 {
@@ -50,6 +56,7 @@ public class CandidatureResumeeResponse
     public string? CourrielEtudiant { get; set; }
     public StatutCandidature Statut { get; set; }
     public DateTime DateCandidature { get; set; }
+    public string? MessageMotivation { get; set; }
     public string? MessageReponseEmployeur { get; set; }
     public DateTime? DateReponseEmployeur { get; set; }
     public bool ACV { get; set; }
@@ -61,7 +68,6 @@ public class CandidatureResumeeResponse
 
 public class CandidatureDetailResponse : CandidatureResumeeResponse
 {
-    public string? MessageMotivation { get; set; }
     public List<DocumentResponse> Documents { get; set; } = new();
 }
 
