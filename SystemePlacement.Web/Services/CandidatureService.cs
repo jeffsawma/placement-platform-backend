@@ -41,6 +41,56 @@ public class CandidatureService : ICandidatureService
         return candidature is null ? null : Map(candidature);
     }
 
+    public async Task<ValidationCandidatureResponse> ValiderPostulationAsync(int idOffre)
+    {
+        if (!_currentUser.IdUtilisateur.HasValue)
+        {
+            return new ValidationCandidatureResponse
+            {
+                PeutPostuler = false,
+                Message = "La session de l'utilisateur connecté est invalide."
+            };
+        }
+
+        var idEtudiant =
+            await _repository.GetIdEtudiantByUtilisateurAsync(
+                _currentUser.IdUtilisateur.Value);
+
+        if (idEtudiant is null)
+        {
+            return new ValidationCandidatureResponse
+            {
+                PeutPostuler = false,
+                Message = "Votre profil étudiant est introuvable."
+            };
+        }
+
+        var offre = await _offreRepository.GetByIdAsync(idOffre);
+
+        if (offre is null)
+        {
+            return new ValidationCandidatureResponse
+            {
+                PeutPostuler = false,
+                Message = "L'offre sélectionnée est introuvable."
+            };
+        }
+
+        if (await _repository.ExistsAsync(idOffre, idEtudiant.Value))
+        {
+            return new ValidationCandidatureResponse
+            {
+                PeutPostuler = false,
+                Message = "Vous avez déjà postulé à cette offre."
+            };
+        }
+
+        return new ValidationCandidatureResponse
+        {
+            PeutPostuler = true
+        };
+    }
+
     public async Task<CandidatureResponse?> PostulerAsync(PostulerRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.CvUrl))
@@ -354,6 +404,7 @@ public class CandidatureService : ICandidatureService
         CourrielEtudiant = c.Etudiant?.Utilisateur?.Courriel,
         Statut = c.Statut,
         DateCandidature = c.DateCandidature,
+        MessageMotivation = c.MessageMotivation ?? c.LettreMotivation,
         MessageReponseEmployeur = c.MessageReponseEmployeur,
         DateReponseEmployeur = c.DateReponseEmployeur,
         EmploiConfirme = c.EmploiConfirme,
@@ -367,6 +418,7 @@ public class CandidatureService : ICandidatureService
     {
         IdCandidature = c.IdCandidature,
         IdOffre = c.IdOffre,
+        IdEtudiant = c.IdEtudiant,
         TitreOffre = c.Offre?.Titre ?? string.Empty,
         NomEtudiant = c.Etudiant?.Utilisateur?.Nom ?? string.Empty,
         PrenomEtudiant = c.Etudiant?.Utilisateur?.Prenom ?? string.Empty,

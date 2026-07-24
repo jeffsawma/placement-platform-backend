@@ -9,6 +9,7 @@ public interface ICandidatureService
     Task<IReadOnlyList<CandidatureResponse>> GetParOffreAsync(int idOffre);
     Task<CandidatureResponse?> GetAsync(int idCandidature);
     Task<CandidatureResponse?> PostulerAsync(PostulerRequest request);
+    Task<ValidationCandidatureResponse> ValiderPostulationAsync(int idOffre);
     Task<bool> ChangerStatutAsync(int idCandidature, ChangerStatutRequest request);
 
     Task<IReadOnlyList<CandidatureResumeeResponse>> GetCandidaturesOffreAsync(int idOffre);
