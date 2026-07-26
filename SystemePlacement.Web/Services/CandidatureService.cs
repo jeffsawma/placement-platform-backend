@@ -154,6 +154,10 @@ public class CandidatureService : ICandidatureService
         _repository.Update(candidature);
         await _repository.SaveChangesAsync();
 
+        await _notification.NotifierEtudiantAsync(
+            candidature.IdEtudiant,
+            $"Le statut de votre candidature a été mis à jour : {statut}.");
+
         return true;
     }
 

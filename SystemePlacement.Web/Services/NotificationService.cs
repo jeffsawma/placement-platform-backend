@@ -49,6 +49,19 @@ public class NotificationService : INotificationService
         await NotifierUtilisateurAsync(idUtilisateur.Value, message);
     }
 
+    public async Task NotifierEtudiantAsync(
+        int idEtudiant,
+        string message)
+    {
+        var idUtilisateur =
+            await _repository.GetIdUtilisateurByEtudiantAsync(idEtudiant);
+
+        if (idUtilisateur is null)
+            return;
+
+        await NotifierUtilisateurAsync(idUtilisateur.Value, message);
+    }
+
     public async Task<IReadOnlyList<NotificationResponse>>
         GetMesNotificationsAsync()
     {

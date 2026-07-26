@@ -78,6 +78,10 @@ public class OffreStageDirecteService : IOffreStageDirecteService
         await _repository.AddAsync(offre);
         await _repository.SaveChangesAsync();
 
+        await _notification.NotifierEtudiantAsync(
+            offre.IdEtudiant,
+            "Vous avez reçu une offre de stage directe d'un employeur.");
+
         var saved = await _repository.GetByIdAsync(offre.IdOffreDirecte);
         return saved is null ? Map(offre) : Map(saved);
     }
