@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SystemePlacement.Web.Data;
@@ -53,6 +54,7 @@ public class CollegesController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "SuperAdministrateur")]
     public async Task<ActionResult<CollegeResponseDto>> CreateCollege([FromBody] CollegeCreateDto dto)
     {
         var nom = dto.Nom.Trim();
@@ -95,6 +97,7 @@ public class CollegesController : ControllerBase
     }
 
     [HttpPut("{id:int}")]
+    [Authorize(Roles = "SuperAdministrateur")]
     public async Task<IActionResult> UpdateCollege(int id, [FromBody] CollegeUpdateDto dto)
     {
         var nom = dto.Nom.Trim();
@@ -140,6 +143,7 @@ public class CollegesController : ControllerBase
     }
 
     [HttpDelete("{id:int}")]
+    [Authorize(Roles = "SuperAdministrateur")]
     public async Task<IActionResult> DeleteCollege(int id)
     {
         var college = await _context.Colleges
