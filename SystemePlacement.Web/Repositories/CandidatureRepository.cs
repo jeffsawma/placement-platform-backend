@@ -57,6 +57,14 @@ public class CandidatureRepository : ICandidatureRepository
         _context.Candidatures
             .AnyAsync(c => c.IdOffre == idOffre && c.IdEtudiant == idEtudiant);
 
+    public Task<string?> GetNomEmployeurAsync(int idEmployeur) =>
+        _context.Employeurs
+            .Where(e => e.IdEmployeur == idEmployeur)
+            .Select(e => e.Entreprise != null && e.Entreprise.Nom != ""
+                ? e.Entreprise.Nom
+                : (e.Utilisateur != null ? e.Utilisateur.Prenom + " " + e.Utilisateur.Nom : null))
+            .FirstOrDefaultAsync();
+
     public Task<int?> GetIdEtudiantByUtilisateurAsync(int idUtilisateur) =>
         _context.Etudiants
             .Where(e => e.IdUtilisateur == idUtilisateur)

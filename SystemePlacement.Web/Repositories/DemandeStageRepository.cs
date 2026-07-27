@@ -42,5 +42,25 @@ public class DemandeStageRepository : IDemandeStageRepository
             .OrderByDescending(d => d.DateCreation)
             .ToListAsync();
 
+    public Task<string?> GetNomDomaineAsync(int idDomaine) =>
+        _context.DomainesEtudes
+            .Where(d => d.IdDomaine == idDomaine)
+            .Select(d => d.Nom)
+            .FirstOrDefaultAsync();
+
+    public Task<int?> GetIdCollegeByDomaineAsync(int idDomaine) =>
+        _context.DomainesEtudes
+            .Where(d => d.IdDomaine == idDomaine)
+            .Select(d => (int?)d.IdCollege)
+            .FirstOrDefaultAsync();
+
+    public Task<string?> GetNomEtudiantAsync(int idEtudiant) =>
+        _context.Etudiants
+            .Where(e => e.IdEtudiant == idEtudiant)
+            .Select(e => e.Utilisateur != null
+                ? e.Utilisateur.Prenom + " " + e.Utilisateur.Nom
+                : null)
+            .FirstOrDefaultAsync();
+
     public Task SaveChangesAsync() => _context.SaveChangesAsync();
 }
