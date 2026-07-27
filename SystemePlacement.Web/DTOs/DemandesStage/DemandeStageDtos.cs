@@ -22,6 +22,7 @@ public class DemandeStageResponse
     public int IdDemandeStage { get; set; }
     public int IdDomaine { get; set; }
     public string NomDomaine { get; set; } = string.Empty;
+    public string NomCollege { get; set; } = string.Empty;
     public string NomEtudiant { get; set; } = string.Empty;
     public string PrenomEtudiant { get; set; } = string.Empty;
     public string? CourrielEtudiant { get; set; }

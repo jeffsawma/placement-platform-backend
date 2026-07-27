@@ -67,6 +67,7 @@ public class DemandeStageService : IDemandeStageService
         IdDemandeStage = d.IdDemandeStage,
         IdDomaine = d.IdDomaine,
         NomDomaine = d.DomaineEtude?.Nom ?? string.Empty,
+        NomCollege = d.DomaineEtude?.College?.Nom ?? string.Empty,
         NomEtudiant = d.Etudiant?.Utilisateur?.Nom ?? string.Empty,
         PrenomEtudiant = d.Etudiant?.Utilisateur?.Prenom ?? string.Empty,
         CourrielEtudiant = d.Etudiant?.Utilisateur?.Courriel,
