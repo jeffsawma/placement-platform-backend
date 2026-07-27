@@ -58,98 +58,48 @@ public class StageService : IStageService
 
     public async Task<StageResponseDto?> GetStageByIdAsync(int idStage)
     {
-        return await _context.Stages
+        var query = _context.Stages
             .AsNoTracking()
             .Include(s => s.Etudiant)
                 .ThenInclude(e => e!.Utilisateur)
             .Include(s => s.Offre)
             .Include(s => s.Confirmations)
                 .ThenInclude(c => c.Utilisateur)
-            .Where(s => s.IdStage == idStage)
-            .Select(s => new StageResponseDto
-            {
-                IdStage = s.IdStage,
-                IdEtudiant = s.IdEtudiant,
-                NomEtudiant = s.Etudiant != null && s.Etudiant.Utilisateur != null
-                    ? s.Etudiant.Utilisateur.Prenom + " " + s.Etudiant.Utilisateur.Nom
-                    : string.Empty,
-                IdOffre = s.IdOffre,
-                TitreOffre = s.Offre != null ? s.Offre.Titre : null,
-                DateDebut = s.DateDebut,
-                DateFin = s.DateFin,
-                Lieu = s.Lieu,
-                Superviseur = s.Superviseur,
-                Statut = s.Statut,
-                DateCreation = s.DateCreation,
-                DateConfirmation = s.DateConfirmation,
-                Confirmations = s.Confirmations
-                    .OrderByDescending(c => c.DateDecision)
-                    .Select(c => new ConfirmationStageResponseDto
-                    {
-                        IdConfirmation = c.IdConfirmation,
-                        TypeConfirmation = c.TypeConfirmation,
-                        Decision = c.Decision,
-                        Motif = c.Motif,
-                        DateDecision = c.DateDecision,
-                        IdUtilisateur = c.IdUtilisateur,
-                        NomUtilisateur = c.Utilisateur != null
-                            ? c.Utilisateur.NomUtilisateur
-                            : string.Empty
-                    })
-                    .ToList()
-            })
-            .FirstOrDefaultAsync();
+            .Where(s => s.IdStage == idStage);
+
+        query = await AppliquerPorteeUtilisateurAsync(query);
+
+        var stage = await query.FirstOrDefaultAsync();
+
+        return stage is null ? null : MapStageResponse(stage);
     }
 
     public async Task<IReadOnlyList<StageResponseDto>> GetStagesAsync()
     {
-        var stages = await _context.Stages
+        var query = _context.Stages
             .AsNoTracking()
             .Include(s => s.Etudiant)
                 .ThenInclude(e => e!.Utilisateur)
             .Include(s => s.Offre)
             .Include(s => s.Confirmations)
                 .ThenInclude(c => c.Utilisateur)
+            .AsQueryable();
+
+        query = await AppliquerPorteeUtilisateurAsync(query);
+
+        var stages = await query
             .OrderByDescending(s => s.DateCreation)
             .ToListAsync();
 
-        return stages.Select(s => new StageResponseDto
-        {
-            IdStage = s.IdStage,
-            IdEtudiant = s.IdEtudiant,
-            NomEtudiant = s.Etudiant?.Utilisateur != null
-                ? s.Etudiant.Utilisateur.Prenom + " " + s.Etudiant.Utilisateur.Nom
-                : string.Empty,
-            IdOffre = s.IdOffre,
-            TitreOffre = s.Offre?.Titre,
-            DateDebut = s.DateDebut,
-            DateFin = s.DateFin,
-            Lieu = s.Lieu,
-            Superviseur = s.Superviseur,
-            Statut = s.Statut,
-            DateCreation = s.DateCreation,
-            DateConfirmation = s.DateConfirmation,
-            Confirmations = s.Confirmations
-                .OrderByDescending(c => c.DateDecision)
-                .Select(c => new ConfirmationStageResponseDto
-                {
-                    IdConfirmation = c.IdConfirmation,
-                    TypeConfirmation = c.TypeConfirmation,
-                    Decision = c.Decision,
-                    Motif = c.Motif,
-                    DateDecision = c.DateDecision,
-                    IdUtilisateur = c.IdUtilisateur,
-                    NomUtilisateur = c.Utilisateur?.NomUtilisateur ?? string.Empty
-                })
-                .ToList()
-        }).ToList();
+        return stages.Select(MapStageResponse).ToList();
     }
 
     public async Task<StageResponseDto?> ConfirmerStageAsync(
-    int idStage,
-    ConfirmationStageCreateDto request)
+        int idStage,
+        ConfirmationStageCreateDto request)
     {
         var stage = await _context.Stages
+            .Include(s => s.Offre)
             .Include(s => s.Confirmations)
             .FirstOrDefaultAsync(s => s.IdStage == idStage);
 
@@ -157,6 +107,8 @@ public class StageService : IStageService
         {
             return null;
         }
+
+        await ValiderDroitConfirmationAsync(stage);
 
         var typeConfirmation = GetTypeConfirmation();
 
@@ -175,7 +127,6 @@ public class StageService : IStageService
             throw new InvalidOperationException("La decision doit etre Accepte ou Refuse.");
         }
 
-        // Valide que le token contient bien l'id de l'utilisateur connecte.
         if (!_currentUser.IdUtilisateur.HasValue)
         {
             throw new InvalidOperationException("Utilisateur connecte introuvable.");
@@ -197,6 +148,100 @@ public class StageService : IStageService
         await MettreAJourStatutStageAsync(stage.IdStage);
 
         return await GetStageByIdAsync(stage.IdStage);
+    }
+
+    private async Task<IQueryable<Stage>> AppliquerPorteeUtilisateurAsync(IQueryable<Stage> query)
+    {
+        // Le SuperAdmin et l'Admin peuvent voir tous les stages pour le moment.
+        if (_currentUser.Role == "SuperAdministrateur" ||
+            _currentUser.Role == "Administrateur")
+        {
+            return query;
+        }
+
+        // Un employeur voit seulement les stages lies a ses offres.
+        if (_currentUser.Role == "Employeur")
+        {
+            if (!_currentUser.IdUtilisateur.HasValue)
+            {
+                return query.Where(s => false);
+            }
+
+            var idEmployeur = await _context.Employeurs
+                .Where(e => e.IdUtilisateur == _currentUser.IdUtilisateur.Value)
+                .Select(e => (int?)e.IdEmployeur)
+                .FirstOrDefaultAsync();
+
+            if (idEmployeur is null)
+            {
+                return query.Where(s => false);
+            }
+
+            return query.Where(s =>
+                s.Offre != null &&
+                s.Offre.IdEmployeur == idEmployeur.Value);
+        }
+
+        // Un responsable voit seulement les stages des etudiants de son college.
+        if (_currentUser.Role == "ResponsableStage")
+        {
+            if (!_currentUser.IdCollege.HasValue)
+            {
+                return query.Where(s => false);
+            }
+
+            return query.Where(s =>
+                s.Etudiant != null &&
+                s.Etudiant.Utilisateur != null &&
+                s.Etudiant.Utilisateur.IdCollege == _currentUser.IdCollege.Value);
+        }
+
+        return query.Where(s => false);
+    }
+
+    private async Task ValiderDroitConfirmationAsync(Stage stage)
+    {
+        if (_currentUser.Role == "Employeur")
+        {
+            if (!_currentUser.IdUtilisateur.HasValue)
+            {
+                throw new InvalidOperationException("Utilisateur connecte introuvable.");
+            }
+
+            var idEmployeur = await _context.Employeurs
+                .Where(e => e.IdUtilisateur == _currentUser.IdUtilisateur.Value)
+                .Select(e => (int?)e.IdEmployeur)
+                .FirstOrDefaultAsync();
+
+            if (idEmployeur is null ||
+                stage.Offre == null ||
+                stage.Offre.IdEmployeur != idEmployeur.Value)
+            {
+                throw new InvalidOperationException("Vous ne pouvez pas confirmer un stage qui ne correspond pas a votre offre.");
+            }
+        }
+
+        if (_currentUser.Role == "ResponsableStage")
+        {
+            if (!_currentUser.IdCollege.HasValue)
+            {
+                throw new InvalidOperationException("Votre compte responsable n'est rattache a aucun college.");
+            }
+
+            var stageDuCollege = await _context.Stages
+                .Include(s => s.Etudiant)
+                    .ThenInclude(e => e!.Utilisateur)
+                .AnyAsync(s =>
+                    s.IdStage == stage.IdStage &&
+                    s.Etudiant != null &&
+                    s.Etudiant.Utilisateur != null &&
+                    s.Etudiant.Utilisateur.IdCollege == _currentUser.IdCollege.Value);
+
+            if (!stageDuCollege)
+            {
+                throw new InvalidOperationException("Vous ne pouvez pas confirmer un stage d'un autre college.");
+            }
+        }
     }
 
     private string GetTypeConfirmation()
@@ -246,5 +291,39 @@ public class StageService : IStageService
         }
 
         await _context.SaveChangesAsync();
+    }
+
+    private static StageResponseDto MapStageResponse(Stage stage)
+    {
+        return new StageResponseDto
+        {
+            IdStage = stage.IdStage,
+            IdEtudiant = stage.IdEtudiant,
+            NomEtudiant = stage.Etudiant?.Utilisateur != null
+                ? stage.Etudiant.Utilisateur.Prenom + " " + stage.Etudiant.Utilisateur.Nom
+                : string.Empty,
+            IdOffre = stage.IdOffre,
+            TitreOffre = stage.Offre?.Titre,
+            DateDebut = stage.DateDebut,
+            DateFin = stage.DateFin,
+            Lieu = stage.Lieu,
+            Superviseur = stage.Superviseur,
+            Statut = stage.Statut,
+            DateCreation = stage.DateCreation,
+            DateConfirmation = stage.DateConfirmation,
+            Confirmations = stage.Confirmations
+                .OrderByDescending(c => c.DateDecision)
+                .Select(c => new ConfirmationStageResponseDto
+                {
+                    IdConfirmation = c.IdConfirmation,
+                    TypeConfirmation = c.TypeConfirmation,
+                    Decision = c.Decision,
+                    Motif = c.Motif,
+                    DateDecision = c.DateDecision,
+                    IdUtilisateur = c.IdUtilisateur,
+                    NomUtilisateur = c.Utilisateur?.NomUtilisateur ?? string.Empty
+                })
+                .ToList()
+        };
     }
 }
