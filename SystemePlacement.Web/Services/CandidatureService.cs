@@ -41,6 +41,56 @@ public class CandidatureService : ICandidatureService
         return candidature is null ? null : Map(candidature);
     }
 
+    public async Task<ValidationCandidatureResponse> ValiderPostulationAsync(int idOffre)
+    {
+        if (!_currentUser.IdUtilisateur.HasValue)
+        {
+            return new ValidationCandidatureResponse
+            {
+                PeutPostuler = false,
+                Message = "La session de l'utilisateur connecté est invalide."
+            };
+        }
+
+        var idEtudiant =
+            await _repository.GetIdEtudiantByUtilisateurAsync(
+                _currentUser.IdUtilisateur.Value);
+
+        if (idEtudiant is null)
+        {
+            return new ValidationCandidatureResponse
+            {
+                PeutPostuler = false,
+                Message = "Votre profil étudiant est introuvable."
+            };
+        }
+
+        var offre = await _offreRepository.GetByIdAsync(idOffre);
+
+        if (offre is null)
+        {
+            return new ValidationCandidatureResponse
+            {
+                PeutPostuler = false,
+                Message = "L'offre sélectionnée est introuvable."
+            };
+        }
+
+        if (await _repository.ExistsAsync(idOffre, idEtudiant.Value))
+        {
+            return new ValidationCandidatureResponse
+            {
+                PeutPostuler = false,
+                Message = "Vous avez déjà postulé à cette offre."
+            };
+        }
+
+        return new ValidationCandidatureResponse
+        {
+            PeutPostuler = true
+        };
+    }
+
     public async Task<CandidatureResponse?> PostulerAsync(PostulerRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.CvUrl))
@@ -94,7 +144,7 @@ public class CandidatureService : ICandidatureService
     public async Task<bool> ChangerStatutAsync(int idCandidature, StatutCandidature statut, string? message = null)
     {
         var candidature = await _repository.GetByIdAsync(idCandidature);
-        if (candidature is null)
+        if (candidature is null || candidature.EmploiConfirme)
             return false;
 
         candidature.Statut = statut;
@@ -104,18 +154,37 @@ public class CandidatureService : ICandidatureService
         _repository.Update(candidature);
         await _repository.SaveChangesAsync();
 
+        await _notification.NotifierEtudiantAsync(
+            candidature.IdEtudiant,
+            $"Le statut de votre candidature a été mis à jour : {statut}.");
+
         return true;
     }
 
-    public async Task<bool> ConfirmerEmploiAsync(int idCandidature, string? message = null)
+    public async Task<bool> ConfirmerEmploiAsync(
+        int idCandidature,
+        string? message = null)
     {
-        var candidature = await _repository.GetByIdAsync(idCandidature);
+        var candidature =
+            await _repository.GetByIdAsync(idCandidature);
 
-        if (candidature is null || candidature.Offre is null)
+        if (candidature is null ||
+            candidature.Offre is null ||
+            candidature.Etudiant is null)
+        {
             return false;
+        }
 
         // US-16 concerne uniquement les offres d'emploi
         if (candidature.Offre is not OffreEmploi)
+            return false;
+
+        // Seule une candidature déjà retenue peut mener à une embauche
+        if (candidature.Statut != StatutCandidature.Acceptee)
+            return false;
+
+        // Une embauche ne peut être confirmée qu'une seule fois
+        if (candidature.EmploiConfirme)
             return false;
 
         if (_currentUser.Role == "Employeur")
@@ -123,21 +192,31 @@ public class CandidatureService : ICandidatureService
             if (!_currentUser.IdUtilisateur.HasValue)
                 return false;
 
-            var idEmployeur = await _offreRepository.GetIdEmployeurByUtilisateurAsync(_currentUser.IdUtilisateur.Value);
+            var idEmployeur =
+                await _offreRepository.GetIdEmployeurByUtilisateurAsync(
+                    _currentUser.IdUtilisateur.Value);
 
-            if (idEmployeur is null || candidature.Offre.IdEmployeur != idEmployeur.Value)
+            if (idEmployeur is null ||
+                candidature.Offre.IdEmployeur != idEmployeur.Value)
+            {
                 return false;
+            }
         }
 
-        candidature.Statut = StatutCandidature.Acceptee; // Changer le statut de la candidature � "Accept�e"
-        candidature.MessageReponseEmployeur = string.IsNullOrWhiteSpace(message)
-            ? "Emploi confirm� par l'employeur."
-            : message;
+        candidature.EmploiConfirme = true;
+        candidature.MessageConfirmationEmploi =
+            string.IsNullOrWhiteSpace(message)
+                ? "Emploi confirmé par l'employeur."
+                : message.Trim();
 
-        candidature.DateReponseEmployeur = DateTime.UtcNow;
+        candidature.DateConfirmationEmploi = DateTime.UtcNow;
 
         _repository.Update(candidature);
         await _repository.SaveChangesAsync();
+
+        await _notification.NotifierUtilisateurAsync(
+            candidature.Etudiant.IdUtilisateur,
+            $"Votre embauche pour l’offre « {candidature.Offre.Titre} » a été confirmée par l’employeur.");
 
         return true;
     }
@@ -243,7 +322,7 @@ public class CandidatureService : ICandidatureService
     public async Task<bool> ChangerStatutAsync(int idCandidature, StatutCandidature statut)
     {
         var candidature = await _repository.GetByIdAsync(idCandidature);
-        if (candidature is null)
+        if (candidature is null || candidature.EmploiConfirme)
             return false;
 
         candidature.Statut = statut;
@@ -311,7 +390,10 @@ public class CandidatureService : ICandidatureService
         LettreMotivation = c.LettreMotivation,
         MessageMotivation = c.MessageMotivation,
         MessageReponseEmployeur = c.MessageReponseEmployeur,
-        DateReponseEmployeur = c.DateReponseEmployeur
+        DateReponseEmployeur = c.DateReponseEmployeur,
+        EmploiConfirme = c.EmploiConfirme,
+        MessageConfirmationEmploi = c.MessageConfirmationEmploi,
+        DateConfirmationEmploi = c.DateConfirmationEmploi
     };
 
     // Ajout de l'id de l'étudiant pour permettre la création d'une offre de stage directe
@@ -326,8 +408,12 @@ public class CandidatureService : ICandidatureService
         CourrielEtudiant = c.Etudiant?.Utilisateur?.Courriel,
         Statut = c.Statut,
         DateCandidature = c.DateCandidature,
+        MessageMotivation = c.MessageMotivation ?? c.LettreMotivation,
         MessageReponseEmployeur = c.MessageReponseEmployeur,
         DateReponseEmployeur = c.DateReponseEmployeur,
+        EmploiConfirme = c.EmploiConfirme,
+        MessageConfirmationEmploi = c.MessageConfirmationEmploi,
+        DateConfirmationEmploi = c.DateConfirmationEmploi,
         ACV = c.Documents.Any(d => d.TypeDocument == TypeDocument.CV) || !string.IsNullOrWhiteSpace(c.CvUrl),
         ALettreMotivation = c.Documents.Any(d => d.TypeDocument == TypeDocument.LettreMotivation) || !string.IsNullOrWhiteSpace(c.LettreMotivation)
     };
@@ -336,6 +422,7 @@ public class CandidatureService : ICandidatureService
     {
         IdCandidature = c.IdCandidature,
         IdOffre = c.IdOffre,
+        IdEtudiant = c.IdEtudiant,
         TitreOffre = c.Offre?.Titre ?? string.Empty,
         NomEtudiant = c.Etudiant?.Utilisateur?.Nom ?? string.Empty,
         PrenomEtudiant = c.Etudiant?.Utilisateur?.Prenom ?? string.Empty,
@@ -344,6 +431,9 @@ public class CandidatureService : ICandidatureService
         DateCandidature = c.DateCandidature,
         MessageReponseEmployeur = c.MessageReponseEmployeur,
         DateReponseEmployeur = c.DateReponseEmployeur,
+        EmploiConfirme = c.EmploiConfirme,
+        MessageConfirmationEmploi = c.MessageConfirmationEmploi,
+        DateConfirmationEmploi = c.DateConfirmationEmploi,
         ACV = c.Documents.Any(d => d.TypeDocument == TypeDocument.CV) || !string.IsNullOrWhiteSpace(c.CvUrl),
         ALettreMotivation = c.Documents.Any(d => d.TypeDocument == TypeDocument.LettreMotivation) || !string.IsNullOrWhiteSpace(c.LettreMotivation),
         MessageMotivation = c.MessageMotivation ?? c.LettreMotivation,

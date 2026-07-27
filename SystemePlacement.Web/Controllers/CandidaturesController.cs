@@ -61,14 +61,42 @@ public class CandidaturesController : ControllerBase
     public async Task<IActionResult> Retirer(int idCandidature)
         => await _service.RetirerAsync(idCandidature) ? NoContent() : NotFound();
 
+    // Vérifie les conditions de candidature avant le téléversement des documents.
+    [HttpGet("validation/{idOffre:int}")]
+    [Authorize(Roles = "Etudiant")]
+    public async Task<IActionResult> ValiderPostulation(int idOffre)
+    {
+        var validation = await _service.ValiderPostulationAsync(idOffre);
+
+        return validation.PeutPostuler
+            ? Ok(validation)
+            : Conflict(validation);
+    }
+
+    // Permet à un étudiant de postuler.
     [HttpPost]
     [Authorize(Roles = "Etudiant")]
     public async Task<IActionResult> Postuler(PostulerRequest request)
     {
+        if (string.IsNullOrWhiteSpace(request.CvUrl))
+            return BadRequest(new { message = "Le CV est obligatoire." });
+
+        var validation = await _service.ValiderPostulationAsync(request.IdOffre);
+
+        if (!validation.PeutPostuler)
+            return Conflict(new { message = validation.Message });
+
         var candidature = await _service.PostulerAsync(request);
+
         return candidature is null
-            ? Conflict(new { message = "Candidature impossible : CV manquant, deja postule, ou profil etudiant introuvable." })
-            : CreatedAtAction(nameof(Get), new { idCandidature = candidature.IdCandidature }, candidature);
+            ? Conflict(new
+            {
+                message = "La candidature n'a pas pu être enregistrée. Veuillez réessayer."
+            })
+            : CreatedAtAction(
+                nameof(Get),
+                new { idCandidature = candidature.IdCandidature },
+                candidature);
     }
 
     [HttpPut("{idCandidature:int}/statut")]
@@ -94,7 +122,10 @@ public class CandidaturesController : ControllerBase
         var succes = await _service.ConfirmerEmploiAsync(idCandidature, request.Message);
         return succes
             ? NoContent()
-            : BadRequest(new { message = "Confirmation d'emploi impossible." });
+            : BadRequest(new
+            {
+                message = "Confirmation d'emploi impossible : la candidature doit être acceptée, liée à une offre d'emploi, ne pas être déjà confirmée et appartenir à l'employeur connecté."
+            });
     }
 
     [HttpGet("documents/{idDocument:int}/telecharger")]
