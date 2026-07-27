@@ -192,9 +192,33 @@ public class CandidatureService : ICandidatureService
         _repository.Update(candidature);
         await _repository.SaveChangesAsync();
 
+        var libelleStatut = statut switch
+        {
+            StatutCandidature.Vue => "a été consultée par l'employeur",
+            StatutCandidature.Acceptee => "a été acceptée",
+            StatutCandidature.Refusee => "a été refusée",
+            StatutCandidature.Retiree => "a été retirée",
+            _ => $"est maintenant : {statut}"
+        };
+
+        var titreOffre = candidature.Offre?.Titre ?? "une offre";
+
         await _notification.NotifierEtudiantAsync(
             candidature.IdEtudiant,
-            $"Le statut de votre candidature a ete mis a jour : {statut}.");
+            $"Votre candidature pour « {titreOffre} » {libelleStatut}.");
+
+        if (statut == StatutCandidature.Acceptee
+            && candidature.Offre is not null
+            && candidature.Etudiant?.Utilisateur?.IdCollege is int idCollegeEtudiant)
+        {
+            var nomEtudiant = $"{candidature.Etudiant.Utilisateur.Prenom} {candidature.Etudiant.Utilisateur.Nom}";
+            var nomEmployeur = await _repository.GetNomEmployeurAsync(candidature.Offre.IdEmployeur) ?? "un employeur";
+            var typePlacement = candidature.Offre is OffreStage ? "en stage" : "pour un emploi";
+
+            await _notification.NotifierResponsablesCollegeAsync(
+                idCollegeEtudiant,
+                $"{nomEtudiant} a été accepté(e) {typePlacement} chez {nomEmployeur}.");
+        }
 
         return true;
     }

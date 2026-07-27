@@ -39,6 +39,12 @@ public class NotificationRepository : INotificationRepository
             .Select(e => (int?)e.IdUtilisateur)
             .FirstOrDefaultAsync();
 
+    public Task<List<int>> GetIdsUtilisateursResponsablesByCollegeAsync(int idCollege) =>
+        (from r in _context.ResponsablesStage
+         join u in _context.Utilisateurs on r.IdUtilisateur equals u.IdUtilisateur
+         where u.IdCollege == idCollege
+         select r.IdUtilisateur).ToListAsync();
+
     public Task<int> CompterNonLuesAsync(int idUtilisateur) =>
         _context.Notifications.CountAsync(n => n.IdUtilisateur == idUtilisateur && !n.Lue);
 

@@ -9,6 +9,7 @@ public interface INotificationRepository
     Task<Notification?> GetByIdAsync(int idNotification);
     Task<int?> GetIdUtilisateurByEmployeurAsync(int idEmployeur);
     Task<int?> GetIdUtilisateurByEtudiantAsync(int idEtudiant);
+    Task<List<int>> GetIdsUtilisateursResponsablesByCollegeAsync(int idCollege);
     Task<int> CompterNonLuesAsync(int idUtilisateur);
     Task SaveChangesAsync();
 }

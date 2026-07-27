@@ -11,6 +11,7 @@ public interface ICandidatureRepository
 
     Task<bool> ExistsAsync(int idOffre, int idEtudiant);
     Task<int?> GetIdEtudiantByUtilisateurAsync(int idUtilisateur);
+    Task<string?> GetNomEmployeurAsync(int idEmployeur);
     Task AddAsync(Candidature candidature);
 
     Task<CandidatureDocument?> GetDocumentAsync(int idDocument);

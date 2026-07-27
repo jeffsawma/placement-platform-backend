@@ -10,11 +10,16 @@ public class DemandeStageService : IDemandeStageService
 {
     private readonly IDemandeStageRepository _repository;
     private readonly ICurrentUserService _currentUser;
+    private readonly INotificationService _notification;
 
-    public DemandeStageService(IDemandeStageRepository repository, ICurrentUserService currentUser)
+    public DemandeStageService(
+        IDemandeStageRepository repository,
+        ICurrentUserService currentUser,
+        INotificationService notification)
     {
         _repository = repository;
         _currentUser = currentUser;
+        _notification = notification;
     }
 
     public async Task<DemandeStageResponse?> CreerAsync(CreerDemandeStageRequest request)
@@ -39,6 +44,14 @@ public class DemandeStageService : IDemandeStageService
 
         await _repository.AddAsync(demande);
         await _repository.SaveChangesAsync();
+
+        var nomDomaine = await _repository.GetNomDomaineAsync(request.IdDomaine) ?? "un domaine";
+        var nomEtudiant = await _repository.GetNomEtudiantAsync(idEtudiant.Value) ?? "Un étudiant";
+        var idCollege = await _repository.GetIdCollegeByDomaineAsync(request.IdDomaine);
+        if (idCollege.HasValue)
+            await _notification.NotifierResponsablesCollegeAsync(
+                idCollege.Value,
+                $"{nomEtudiant} a formulé une demande de stage en « {nomDomaine} ».");
 
         return Map(demande);
     }
