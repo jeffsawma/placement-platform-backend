@@ -35,6 +35,7 @@ public class DemandeStageRepository : IDemandeStageRepository
         _context.DemandesStage
             .AsNoTracking()
             .Include(d => d.DomaineEtude)
+                .ThenInclude(dom => dom!.College)
             .Include(d => d.Etudiant)
                 .ThenInclude(e => e!.Utilisateur)
             .Where(d => d.IdDomaine == idDomaine)
