@@ -2,6 +2,7 @@
 using SystemePlacement.Web.Data;
 using SystemePlacement.Web.Models;
 using SystemePlacement.Web.Repositories.Interfaces;
+using SystemePlacement.Web.Enums;
 
 namespace SystemePlacement.Web.Repositories;
 
@@ -48,6 +49,11 @@ public class OffreStageDirecteRepository : IOffreStageDirecteRepository
             .OrderByDescending(o => o.DateProposition)
             .ToListAsync();
 
+    public Task<bool> ExistsActiveForCandidatureAsync(int idCandidature) =>
+        _context.OffresStageDirectes.AnyAsync(o =>
+            o.IdCandidature == idCandidature &&
+            (o.Statut == StatutOffreStageDirecte.Envoyee ||
+             o.Statut == StatutOffreStageDirecte.Acceptee));
     public async Task AddAsync(OffreStageDirecte offreStageDirecte)
     {
         await _context.OffresStageDirectes.AddAsync(offreStageDirecte);

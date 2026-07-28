@@ -12,17 +12,20 @@ public class OffreStageDirecteService : IOffreStageDirecteService
     private readonly IOffreRepository _offreRepository;
     private readonly ICurrentUserService _currentUser;
     private readonly INotificationService _notification;
+    private readonly ICandidatureService _candidatureService;
 
     public OffreStageDirecteService(
         IOffreStageDirecteRepository repository,
         IOffreRepository offreRepository,
         ICurrentUserService currentUser,
-        INotificationService notification)
+        INotificationService notification,
+        ICandidatureService candidatureService)
     {
         _repository = repository;
         _offreRepository = offreRepository;
         _currentUser = currentUser;
         _notification = notification;
+        _candidatureService = candidatureService;
     }
 
     public async Task<IReadOnlyList<OffreStageDirecteReponse>> GetMesOffresAsync()
@@ -59,6 +62,13 @@ public class OffreStageDirecteService : IOffreStageDirecteService
 
         if (string.IsNullOrWhiteSpace(request.Conditions))
             return null;
+
+        if (request.IdCandidature.HasValue &&
+            await _repository.ExistsActiveForCandidatureAsync(
+                request.IdCandidature.Value))
+        {
+            return null;
+        }
 
         var offre = new OffreStageDirecte
         {
@@ -108,6 +118,17 @@ public class OffreStageDirecteService : IOffreStageDirecteService
 
         if (offre.Statut != StatutOffreStageDirecte.Envoyee)
             return false;
+
+        if (request.Accepte && offre.IdCandidature.HasValue)
+        {
+            var candidatureMiseAJour =
+                await _candidatureService.ChangerStatutAsync(
+                    offre.IdCandidature.Value,
+                    StatutCandidature.Acceptee);
+
+            if (!candidatureMiseAJour)
+                return false;
+        }
 
         offre.Statut = request.Accepte ? StatutOffreStageDirecte.Acceptee : StatutOffreStageDirecte.Refusee;
         offre.ReponseEtudiant = request.Reponse;
