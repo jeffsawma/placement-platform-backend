@@ -363,8 +363,12 @@ public class CandidatureService : ICandidatureService
 
         var candidature = await _repository.GetByIdAsync(idCandidature);
 
-        if (candidature is null || candidature.IdEtudiant != idEtudiant.Value)
+        if (candidature is null ||
+            candidature.IdEtudiant != idEtudiant.Value ||
+            candidature.Statut != StatutCandidature.EnAttente)
+        {
             return false;
+        }
 
         candidature.Statut = StatutCandidature.Retiree;
 

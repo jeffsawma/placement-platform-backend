@@ -8,6 +8,7 @@ public interface IOffreStageDirecteRepository
     Task<bool> EtudiantExistsAsync(int idEtudiant); // Vérifier si un étudiant existe dans la base de données
     Task<int?> GetIdEtudiantByUtilisateurAsync(int idUtilisateur);
     Task<List<OffreStageDirecte>> GetByEtudiantAsync(int idEtudiant);
+    Task<bool> ExistsActiveForCandidatureAsync(int idCandidature);
     Task AddAsync(OffreStageDirecte offreStageDirecte); // Ajouter une nouvelle offre de stage directe à la base de données
     Task SaveChangesAsync();
 }
