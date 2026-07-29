@@ -217,7 +217,7 @@ public class CandidatureService : ICandidatureService
 
             await _notification.NotifierResponsablesCollegeAsync(
                 idCollegeEtudiant,
-                $"{nomEtudiant} a été accepté(e) {typePlacement} chez {nomEmployeur}.");
+                $"{nomEtudiant} a été accepté(e) {typePlacement} chez {nomEmployeur} pour « {titreOffre} ».");
         }
 
         return true;

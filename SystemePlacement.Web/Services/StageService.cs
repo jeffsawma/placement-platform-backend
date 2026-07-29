@@ -10,11 +10,16 @@ public class StageService : IStageService
 {
     private readonly ApplicationDbContext _context;
     private readonly ICurrentUserService _currentUser;
+    private readonly INotificationService _notification;
 
-    public StageService(ApplicationDbContext context, ICurrentUserService currentUser)
+    public StageService(
+        ApplicationDbContext context,
+        ICurrentUserService currentUser,
+        INotificationService notification)
     {
         _context = context;
         _currentUser = currentUser;
+        _notification = notification;
     }
 
     public async Task<StageResponseDto> CreerStageAsync(StageCreateDto request)
@@ -262,8 +267,11 @@ public class StageService : IStageService
     private async Task MettreAJourStatutStageAsync(int idStage)
     {
         var stage = await _context.Stages
+            .Include(s => s.Offre)
             .Include(s => s.Confirmations)
             .FirstAsync(s => s.IdStage == idStage);
+
+        var ancienStatut = stage.Statut;
 
         if (stage.Confirmations.Any(c => c.Decision == "Refuse"))
         {
@@ -291,6 +299,26 @@ public class StageService : IStageService
         }
 
         await _context.SaveChangesAsync();
+
+        if (stage.Statut == ancienStatut)
+            return;
+
+        var libelleStage = string.IsNullOrWhiteSpace(stage.Offre?.Titre)
+            ? "Votre stage"
+            : $"Votre stage pour « {stage.Offre.Titre} »";
+
+        if (stage.Statut == "Confirme")
+        {
+            await _notification.NotifierEtudiantAsync(
+                stage.IdEtudiant,
+                $"{libelleStage} a été officiellement confirmé par l'employeur et le responsable de stage.");
+        }
+        else if (stage.Statut == "Refuse")
+        {
+            await _notification.NotifierEtudiantAsync(
+                stage.IdEtudiant,
+                $"La confirmation de {libelleStage.ToLowerInvariant()} a été refusée.");
+        }
     }
 
     private static StageResponseDto MapStageResponse(Stage stage)
