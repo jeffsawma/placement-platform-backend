@@ -90,7 +90,8 @@ public class OffreStageDirecteService : IOffreStageDirecteService
 
         await _notification.NotifierEtudiantAsync(
             offre.IdEtudiant,
-            "Vous avez reçu une offre de stage directe d'un employeur.");
+            "Vous avez reçu une offre de stage directe d'un employeur.",
+            "/offres-stage-recues");
 
         var saved = await _repository.GetByIdAsync(offre.IdOffreDirecte);
         return saved is null ? Map(offre) : Map(saved);
@@ -137,7 +138,8 @@ public class OffreStageDirecteService : IOffreStageDirecteService
 
         await _notification.NotifierEmployeurAsync(
             offre.IdEmployeur,
-            $"L'étudiant a {(request.Accepte ? "accepté" : "refusé")} votre offre de stage directe.");
+            $"L'étudiant a {(request.Accepte ? "accepté" : "refusé")} votre offre de stage directe.",
+            "/employeur/offres-stage-directes");
 
         return true;
     }

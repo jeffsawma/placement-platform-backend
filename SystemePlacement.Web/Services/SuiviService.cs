@@ -10,11 +10,16 @@ public class SuiviService : ISuiviService
 {
     private readonly ApplicationDbContext _context;
     private readonly ICurrentUserService _currentUser;
+    private readonly INotificationService _notification;
 
-    public SuiviService(ApplicationDbContext context, ICurrentUserService currentUser)
+    public SuiviService(
+        ApplicationDbContext context,
+        ICurrentUserService currentUser,
+        INotificationService notification)
     {
         _context = context;
         _currentUser = currentUser;
+        _notification = notification;
     }
 
     public async Task<IReadOnlyList<EtudiantSuiviResponseDto>> GetEtudiantsSuivisAsync()
@@ -181,6 +186,14 @@ public class SuiviService : ISuiviService
 
         await _context.DemarchesSuivi.AddAsync(demarche);
         await _context.SaveChangesAsync();
+
+        if (demarche.VisibleEtudiant)
+        {
+            await _notification.NotifierEtudiantAsync(
+                idEtudiant,
+                $"Votre responsable de stage a ajouté une démarche de suivi : {demarche.TypeDemarche}.",
+                "/mes-demarches");
+        }
 
         return new DemarcheSuiviResponseDto
         {

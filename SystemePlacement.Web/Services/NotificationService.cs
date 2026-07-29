@@ -20,7 +20,8 @@ public class NotificationService : INotificationService
 
     public async Task NotifierUtilisateurAsync(
         int idUtilisateur,
-        string message)
+        string message,
+        string? lien = null)
     {
         if (idUtilisateur <= 0 || string.IsNullOrWhiteSpace(message))
             return;
@@ -29,6 +30,7 @@ public class NotificationService : INotificationService
         {
             IdUtilisateur = idUtilisateur,
             Message = message.Trim(),
+            Lien = lien,
             Lue = false,
             DateCreation = DateTime.UtcNow
         });
@@ -38,7 +40,8 @@ public class NotificationService : INotificationService
 
     public async Task NotifierEmployeurAsync(
         int idEmployeur,
-        string message)
+        string message,
+        string? lien = null)
     {
         var idUtilisateur =
             await _repository.GetIdUtilisateurByEmployeurAsync(idEmployeur);
@@ -46,12 +49,13 @@ public class NotificationService : INotificationService
         if (idUtilisateur is null)
             return;
 
-        await NotifierUtilisateurAsync(idUtilisateur.Value, message);
+        await NotifierUtilisateurAsync(idUtilisateur.Value, message, lien);
     }
 
     public async Task NotifierEtudiantAsync(
         int idEtudiant,
-        string message)
+        string message,
+        string? lien = null)
     {
         var idUtilisateur =
             await _repository.GetIdUtilisateurByEtudiantAsync(idEtudiant);
@@ -59,15 +63,15 @@ public class NotificationService : INotificationService
         if (idUtilisateur is null)
             return;
 
-        await NotifierUtilisateurAsync(idUtilisateur.Value, message);
+        await NotifierUtilisateurAsync(idUtilisateur.Value, message, lien);
     }
 
-    public async Task NotifierResponsablesCollegeAsync(int idCollege, string message)
+    public async Task NotifierResponsablesCollegeAsync(int idCollege, string message, string? lien = null)
     {
         var idsUtilisateurs = await _repository.GetIdsUtilisateursResponsablesByCollegeAsync(idCollege);
 
         foreach (var idUtilisateur in idsUtilisateurs)
-            await NotifierUtilisateurAsync(idUtilisateur, message);
+            await NotifierUtilisateurAsync(idUtilisateur, message, lien);
     }
 
     public async Task<IReadOnlyList<NotificationResponse>>
@@ -118,6 +122,7 @@ public class NotificationService : INotificationService
     {
         IdNotification = notification.IdNotification,
         Message = notification.Message,
+        Lien = notification.Lien,
         Lue = notification.Lue,
         DateCreation = notification.DateCreation
     };
