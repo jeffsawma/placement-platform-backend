@@ -5,6 +5,7 @@ namespace SystemePlacement.Web.Repositories.Interfaces;
 public interface IRecommandationRepository
 {
     Task<List<Recommandation>> GetByEtudiantAsync(int idEtudiant);
+    Task<List<Recommandation>> GetByEmployeurAsync(int idEmployeur);
     Task<Recommandation?> GetByIdAsync(int idRecommandation);
     Task AddAsync(Recommandation recommandation);
     void Delete(Recommandation recommandation);

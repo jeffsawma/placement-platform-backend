@@ -17,7 +17,25 @@ public class RecommandationRepository : IRecommandationRepository
             .Include(r => r.Auteur)
             .Include(r => r.Etudiant)
                 .ThenInclude(e => e!.Utilisateur)
+            .Include(r => r.EmployeurDestinataire)
+                .ThenInclude(e => e!.Utilisateur)
+            .Include(r => r.EmployeurDestinataire)
+                .ThenInclude(e => e!.Entreprise)
             .Where(r => r.IdEtudiant == idEtudiant)
+            .OrderByDescending(r => r.DateCreation)
+            .ToListAsync();
+
+    public Task<List<Recommandation>> GetByEmployeurAsync(int idEmployeur) =>
+        _context.Recommandations
+            .AsNoTracking()
+            .Include(r => r.Auteur)
+            .Include(r => r.Etudiant)
+                .ThenInclude(e => e!.Utilisateur)
+            .Include(r => r.EmployeurDestinataire)
+                .ThenInclude(e => e!.Utilisateur)
+            .Include(r => r.EmployeurDestinataire)
+                .ThenInclude(e => e!.Entreprise)
+            .Where(r => r.IdEmployeurDestinataire == idEmployeur)
             .OrderByDescending(r => r.DateCreation)
             .ToListAsync();
 
@@ -26,6 +44,10 @@ public class RecommandationRepository : IRecommandationRepository
             .Include(r => r.Auteur)
             .Include(r => r.Etudiant)
                 .ThenInclude(e => e!.Utilisateur)
+            .Include(r => r.EmployeurDestinataire)
+                .ThenInclude(e => e!.Utilisateur)
+            .Include(r => r.EmployeurDestinataire)
+                .ThenInclude(e => e!.Entreprise)
             .FirstOrDefaultAsync(r => r.IdRecommandation == idRecommandation);
 
     public async Task AddAsync(Recommandation recommandation) =>

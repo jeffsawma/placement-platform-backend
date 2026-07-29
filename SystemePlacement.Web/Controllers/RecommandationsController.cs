@@ -12,7 +12,10 @@ public class RecommandationsController : ControllerBase
 {
     private readonly IRecommandationService _service;
 
-    public RecommandationsController(IRecommandationService service) => _service = service;
+    public RecommandationsController(IRecommandationService service)
+    {
+        _service = service;
+    }
 
     [HttpGet("etudiant/{idEtudiant:int}")]
     [Authorize(Roles = "Employeur,ResponsableStage,Administrateur,SuperAdministrateur")]
@@ -22,15 +25,28 @@ public class RecommandationsController : ControllerBase
         return Ok(recommandations);
     }
 
+    // Permet à l'employeur connecté de voir les recommandations qui lui sont destinées.
+    [HttpGet("recues")]
+    [Authorize(Roles = "Employeur")]
+    public async Task<IActionResult> GetMesRecommandationsRecues()
+    {
+        var recommandations = await _service.GetMesRecommandationsRecuesAsync();
+        return Ok(recommandations);
+    }
+
     [HttpPost]
     [Authorize(Roles = "Employeur,ResponsableStage,Administrateur,SuperAdministrateur")]
     public async Task<IActionResult> Creer(
         [FromForm] CreerRecommandationRequest request,
         IFormFile? lettre)
     {
-        if (!ModelState.IsValid) return BadRequest(ModelState);
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
 
         var result = await _service.CreerAsync(request, lettre);
+
         return result is null
             ? Forbid()
             : CreatedAtAction(nameof(GetByEtudiant), new { idEtudiant = result.IdEtudiant }, result);
@@ -41,7 +57,11 @@ public class RecommandationsController : ControllerBase
     public async Task<IActionResult> TelechargerLettre(int idRecommandation)
     {
         var result = await _service.TelechargerLettreAsync(idRecommandation);
-        if (result is null) return NotFound();
+
+        if (result is null)
+        {
+            return NotFound();
+        }
 
         return File(result.Value.Contenu, result.Value.ContentType, result.Value.NomFichier);
     }
@@ -51,6 +71,7 @@ public class RecommandationsController : ControllerBase
     public async Task<IActionResult> Supprimer(int idRecommandation)
     {
         var succes = await _service.SupprimerAsync(idRecommandation);
+
         return succes ? NoContent() : NotFound();
     }
 }
