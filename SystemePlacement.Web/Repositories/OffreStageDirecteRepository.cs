@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SystemePlacement.Web.Data;
+using SystemePlacement.Web.Enums;
 using SystemePlacement.Web.Models;
 using SystemePlacement.Web.Repositories.Interfaces;
-using SystemePlacement.Web.Enums;
 
 namespace SystemePlacement.Web.Repositories;
 
@@ -20,6 +20,7 @@ public class OffreStageDirecteRepository : IOffreStageDirecteRepository
             .AsNoTracking()
             .Include(o => o.Etudiant)
                 .ThenInclude(e => e!.Utilisateur)
+            .Include(o => o.OffreStage)
             .Where(o => o.IdEmployeur == idEmployeur)
             .OrderByDescending(o => o.DateProposition)
             .ToListAsync();
@@ -29,6 +30,7 @@ public class OffreStageDirecteRepository : IOffreStageDirecteRepository
             .Include(o => o.Etudiant)
                 .ThenInclude(e => e!.Utilisateur)
             .Include(o => o.Employeur)
+            .Include(o => o.OffreStage)
             .FirstOrDefaultAsync(o => o.IdOffreDirecte == idOffreDirecte);
 
     public Task<bool> EtudiantExistsAsync(int idEtudiant) =>
@@ -45,6 +47,7 @@ public class OffreStageDirecteRepository : IOffreStageDirecteRepository
             .AsNoTracking()
             .Include(o => o.Etudiant)
                 .ThenInclude(e => e!.Utilisateur)
+            .Include(o => o.OffreStage)
             .Where(o => o.IdEtudiant == idEtudiant)
             .OrderByDescending(o => o.DateProposition)
             .ToListAsync();
@@ -54,6 +57,7 @@ public class OffreStageDirecteRepository : IOffreStageDirecteRepository
             o.IdCandidature == idCandidature &&
             (o.Statut == StatutOffreStageDirecte.Envoyee ||
              o.Statut == StatutOffreStageDirecte.Acceptee));
+
     public async Task AddAsync(OffreStageDirecte offreStageDirecte)
     {
         await _context.OffresStageDirectes.AddAsync(offreStageDirecte);
