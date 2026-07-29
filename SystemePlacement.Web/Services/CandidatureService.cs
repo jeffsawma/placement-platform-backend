@@ -139,7 +139,8 @@ public class CandidatureService : ICandidatureService
         {
             await _notification.NotifierEmployeurAsync(
                 offre.IdEmployeur,
-                $"Nouvelle candidature recue pour \"{offre.Titre}\".");
+                $"Nouvelle candidature recue pour \"{offre.Titre}\".",
+                "/employeur/candidatures");
         }
 
         return Map(candidature);
@@ -205,7 +206,8 @@ public class CandidatureService : ICandidatureService
 
         await _notification.NotifierEtudiantAsync(
             candidature.IdEtudiant,
-            $"Votre candidature pour « {titreOffre} » {libelleStatut}.");
+            $"Votre candidature pour « {titreOffre} » {libelleStatut}.",
+            "/mes-candidatures");
 
         if (statut == StatutCandidature.Acceptee
             && candidature.Offre is not null
@@ -217,7 +219,8 @@ public class CandidatureService : ICandidatureService
 
             await _notification.NotifierResponsablesCollegeAsync(
                 idCollegeEtudiant,
-                $"{nomEtudiant} a été accepté(e) {typePlacement} chez {nomEmployeur} pour « {titreOffre} ».");
+                $"{nomEtudiant} a été accepté(e) {typePlacement} chez {nomEmployeur} pour « {titreOffre} ».",
+                "/responsable/suivi-etudiants");
         }
 
         return true;
@@ -270,7 +273,8 @@ public class CandidatureService : ICandidatureService
 
         await _notification.NotifierUtilisateurAsync(
             candidature.Etudiant.IdUtilisateur,
-            $"Votre embauche pour l'offre \"{candidature.Offre.Titre}\" a ete confirmee par l'employeur.");
+            $"Votre embauche pour l'offre \"{candidature.Offre.Titre}\" a ete confirmee par l'employeur.",
+            "/mes-candidatures");
 
         return true;
     }

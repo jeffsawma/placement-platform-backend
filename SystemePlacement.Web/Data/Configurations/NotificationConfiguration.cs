@@ -23,6 +23,10 @@ public class NotificationConfiguration : IEntityTypeConfiguration<Notification>
             .HasColumnName("message")
             .IsRequired();
 
+        builder.Property(n => n.Lien)
+            .HasColumnName("lien")
+            .HasMaxLength(200);
+
         builder.Property(n => n.Lue)
             .HasColumnName("lue")
             .HasDefaultValue(false)

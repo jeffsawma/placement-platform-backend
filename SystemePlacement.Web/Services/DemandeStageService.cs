@@ -51,7 +51,8 @@ public class DemandeStageService : IDemandeStageService
         if (idCollege.HasValue)
             await _notification.NotifierResponsablesCollegeAsync(
                 idCollege.Value,
-                $"{nomEtudiant} a formulé une demande de stage en « {nomDomaine} ».");
+                $"{nomEtudiant} a formulé une demande de stage en « {nomDomaine} ».",
+                "/responsable/suivi-etudiants");
 
         return Map(demande);
     }
