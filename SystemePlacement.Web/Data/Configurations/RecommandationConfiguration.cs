@@ -22,6 +22,10 @@ public class RecommandationConfiguration : IEntityTypeConfiguration<Recommandati
         builder.Property(r => r.IdAuteur)
             .HasColumnName("id_auteur");
 
+        // Employeur destinataire de la recommandation.
+        builder.Property(r => r.IdEmployeurDestinataire)
+            .HasColumnName("id_employeur_destinataire");
+
         builder.Property(r => r.Commentaire)
             .IsRequired()
             .HasMaxLength(2000)
@@ -52,7 +56,15 @@ public class RecommandationConfiguration : IEntityTypeConfiguration<Recommandati
             .HasForeignKey(r => r.IdAuteur)
             .OnDelete(DeleteBehavior.Restrict);
 
+        builder.HasOne(r => r.EmployeurDestinataire)
+            .WithMany()
+            .HasForeignKey(r => r.IdEmployeurDestinataire)
+            .OnDelete(DeleteBehavior.Restrict);
+
         builder.HasIndex(r => r.IdEtudiant)
             .HasDatabaseName("idx_recommandation_etudiant");
+
+        builder.HasIndex(r => r.IdEmployeurDestinataire)
+            .HasDatabaseName("idx_recommandation_employeur_destinataire");
     }
 }
