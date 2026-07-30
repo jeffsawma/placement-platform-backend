@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+using SystemePlacement.Web.Data;
 using SystemePlacement.Web.DTOs.OffresStageDirectes;
 using SystemePlacement.Web.Enums;
 using SystemePlacement.Web.Models;
@@ -13,19 +15,22 @@ public class OffreStageDirecteService : IOffreStageDirecteService
     private readonly ICurrentUserService _currentUser;
     private readonly INotificationService _notification;
     private readonly ICandidatureService _candidatureService;
+    private readonly ApplicationDbContext _context;
 
     public OffreStageDirecteService(
         IOffreStageDirecteRepository repository,
         IOffreRepository offreRepository,
         ICurrentUserService currentUser,
         INotificationService notification,
-        ICandidatureService candidatureService)
+        ICandidatureService candidatureService,
+        ApplicationDbContext context)
     {
         _repository = repository;
         _offreRepository = offreRepository;
         _currentUser = currentUser;
         _notification = notification;
         _candidatureService = candidatureService;
+        _context = context;
     }
 
     public async Task<IReadOnlyList<OffreStageDirecteReponse>> GetMesOffresAsync()
@@ -77,6 +82,20 @@ public class OffreStageDirecteService : IOffreStageDirecteService
         if (string.IsNullOrWhiteSpace(request.Conditions))
         {
             return null;
+        }
+
+        if (request.IdOffreStage.HasValue)
+        {
+            var offreStageValide = await _context.Offres
+                .OfType<OffreStage>()
+                .AnyAsync(o =>
+                    o.IdOffre == request.IdOffreStage.Value &&
+                    o.IdEmployeur == idEmployeur.Value);
+
+            if (!offreStageValide)
+            {
+                return null;
+            }
         }
 
         // Empêche de faire deux offres directes actives pour la même candidature.
@@ -158,6 +177,34 @@ public class OffreStageDirecteService : IOffreStageDirecteService
             if (!candidatureMiseAJour)
             {
                 return false;
+            }
+        }
+
+        if (request.Accepte &&
+            !offre.IdCandidature.HasValue &&
+            offre.IdOffreStage.HasValue &&
+            offre.OffreStage is not null)
+        {
+            var stageExiste = await _context.Stages
+                .AnyAsync(s =>
+                    s.IdEtudiant == offre.IdEtudiant &&
+                    s.IdOffre == offre.IdOffreStage.Value);
+
+            if (!stageExiste)
+            {
+                await _context.Stages.AddAsync(new Stage
+                {
+                    IdEtudiant = offre.IdEtudiant,
+                    IdOffre = offre.IdOffreStage.Value,
+                    DateDebut = offre.DateDebutProposee
+                        ?? offre.OffreStage.DateDebutStage,
+                    DateFin = offre.DateFinProposee
+                        ?? offre.OffreStage.DateFinStage,
+                    Lieu = offre.OffreStage.Ville,
+                    Superviseur = null,
+                    Statut = "EnAttente",
+                    DateCreation = DateTime.UtcNow
+                });
             }
         }
 
