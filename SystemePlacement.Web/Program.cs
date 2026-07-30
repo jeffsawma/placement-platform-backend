@@ -18,7 +18,7 @@ builder.Services.AddControllers()
     .AddJsonOptions(options =>
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
-// Swagger pour tester les routes pendant le d�veloppement
+// Swagger pour tester les routes pendant le développement
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSwaggerGen(options =>
@@ -48,7 +48,7 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-// Permet � CurrentUserService de lire l'utilisateur connect� depuis le token JWT
+// Permet à CurrentUserService de lire l'utilisateur connecté depuis le token JWT
 builder.Services.AddHttpContextAccessor();
 
 // Connexion MySQL avec Entity Framework Core
@@ -56,7 +56,7 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 
 if (string.IsNullOrWhiteSpace(connectionString))
 {
-    throw new InvalidOperationException("La cha�ne de connexion DefaultConnection est manquante.");
+    throw new InvalidOperationException("La chaîne de connexion DefaultConnection est manquante.");
 }
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -113,7 +113,7 @@ var jwtAudience = builder.Configuration["Jwt:Audience"];
 
 if (string.IsNullOrWhiteSpace(jwtKey))
 {
-    throw new InvalidOperationException("La cl� JWT est manquante dans appsettings.json.");
+    throw new InvalidOperationException("La clé JWT est manquante dans appsettings.json.");
 }
 
 builder.Services.AddAuthentication(options =>
@@ -140,14 +140,14 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
-// Swagger seulement en d�veloppement
+// Swagger seulement en développement
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-// Cr�e la base et ajoute les r�les de base si n�cessaire
+// Crée la base et ajoute les rôles de base si nécessaire
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();

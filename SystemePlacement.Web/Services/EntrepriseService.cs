@@ -41,14 +41,14 @@ public class EntrepriseService : IEntrepriseService
         var employeur = await GetEmployeurConnecteAsync();
 
         var profilExiste = await _context.Entreprises
-            .AnyAsync(e => e.IdEmployeur == employeur.IdEmployeur); // VÈrifie si un profil d'entreprise existe dÈj‡ pour un employeur spÈcifique
+            .AnyAsync(e => e.IdEmployeur == employeur.IdEmployeur); // V√©rifie si un profil d'entreprise existe d√©j√† pour un employeur sp√©cifique
 
         if (profilExiste)
         {
-            throw new InvalidOperationException("Un profil d'entreprise existe dÈj‡ pour cet employeur.");
+            throw new InvalidOperationException("Un profil d'entreprise existe d√©j√† pour cet employeur.");
         }
 
-        // Valeurs requises de l'employeur ou utilisateur authentifiÈ pour la crÈation d'un profil d'entreprise
+        // Valeurs requises de l'employeur ou utilisateur authentifi√© pour la cr√©ation d'un profil d'entreprise
         var nom = dto.Nom.Trim();
         var secteur = dto.Secteur.Trim();
         var adresse = dto.Adresse.Trim();
@@ -61,7 +61,7 @@ public class EntrepriseService : IEntrepriseService
             throw new InvalidOperationException("Le nom, le secteur et l'adresse sont obligatoire.");
         }
 
-        // CrÈation du profil d'entreprise
+        // Cr√©ation du profil d'entreprise
         var entreprise = new Entreprise
         {
             IdEmployeur = employeur.IdEmployeur,
@@ -73,7 +73,7 @@ public class EntrepriseService : IEntrepriseService
             LogoUrl = string.IsNullOrWhiteSpace(dto.LogoUrl) ? null : dto.LogoUrl.Trim()
         };
 
-        _context.Entreprises.Add(entreprise); // Ajout du nouveau profil díentreprise ‡ la liste des entreprises dans la bd
+        _context.Entreprises.Add(entreprise); // Ajout du nouveau profil d‚Äôentreprise √† la liste des entreprises dans la bd
         await _context.SaveChangesAsync();
 
         return ToResponseDto(entreprise);
@@ -88,7 +88,7 @@ public class EntrepriseService : IEntrepriseService
 
         if (entreprise == null)
         {
-            return false; // Pas de profil d'entreprise existe pour un employeur spÈcifique
+            return false; // Pas de profil d'entreprise existe pour un employeur sp√©cifique
         }
 
         var nom = dto.Nom.Trim();
@@ -102,7 +102,7 @@ public class EntrepriseService : IEntrepriseService
             throw new InvalidOperationException("Le nom, le secteur et l'adresse sont obligatoires.");
         }
 
-        // ModifiÈ les valeurs des attributs d'une entreprise selon une requette de l'employeur
+        // Modifi√© les valeurs des attributs d'une entreprise selon une requette de l'employeur
         entreprise.Nom = nom;
         entreprise.Secteur = secteur;
         entreprise.Adresse = adresse;
@@ -117,19 +117,19 @@ public class EntrepriseService : IEntrepriseService
 
     private async Task<Employeur> GetEmployeurConnecteAsync()
     {
-        // VÈrification de l'authentification de l'utilisateur actuel
+        // V√©rification de l'authentification de l'utilisateur actuel
         if (!_currentUserService.IsAuthenticated || _currentUserService.IdUtilisateur == null)
         {
-            throw new UnauthorizedAccessException("Utilisateur non authentifiÈ.");
+            throw new UnauthorizedAccessException("Utilisateur non authentifi√©.");
         }
 
-        // VÈrifier si l'utilisateur authentifiÈ actuel avec un id spÈcifique est l'employeur possÈdant le mÍme id
+        // V√©rifier si l'utilisateur authentifi√© actuel avec un id sp√©cifique est l'employeur poss√©dant le m√™me id
         var employeur = await _context.Employeurs
             .FirstOrDefaultAsync(e => e.IdUtilisateur == _currentUserService.IdUtilisateur.Value);
 
         if (employeur == null)
         {
-            throw new InvalidOperationException("Aucun profil employeur n'est associÈ ‡ cet utilisateur.");
+            throw new InvalidOperationException("Aucun profil employeur n'est associ√© √† cet utilisateur.");
         }
 
         return employeur;

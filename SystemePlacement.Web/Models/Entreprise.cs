@@ -3,7 +3,7 @@ namespace SystemePlacement.Web.Models;
 public class Entreprise
 {
     public int IdEntreprise { get; set; }
-    public int IdEmployeur { get; set; } // Clé étrangère vers Employeur // À ajouter après le FK IdEmployeur dans l'entité Entreprise
+    public int IdEmployeur { get; set; } // ClÃ© Ã©trangÃ¨re vers Employeur // Ã€ ajouter aprÃ¨s le FK IdEmployeur dans l'entitÃ© Entreprise
     public string Nom { get; set; } = string.Empty;
     public string Secteur { get; set; } = string.Empty;
     public string Adresse {  get; set; } = string.Empty;
@@ -12,6 +12,6 @@ public class Entreprise
     public string? LogoUrl { get; set; }
 
     // Relations
-    // Une entreprise appartient à un employeur
+    // Une entreprise appartient Ã  un employeur
     public Employeur? Employeur { get; set; }
 }

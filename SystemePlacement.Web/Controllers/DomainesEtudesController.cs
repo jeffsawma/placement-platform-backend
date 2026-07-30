@@ -9,7 +9,7 @@ using SystemePlacement.Web.Services.Interfaces;
 namespace SystemePlacement.Web.Controllers;
 
 [ApiController]
-[Route("api/domaines-etudes")] // Route de base pour les domaines d'études
+[Route("api/domaines-etudes")] // Route de base pour les domaines d'Ã©tudes
 public class DomainesEtudesController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
@@ -70,7 +70,7 @@ public class DomainesEtudesController : ControllerBase
             })
             .ToListAsync();
 
-        return Ok(domainesEtudes); // Retourne la liste de tous les domaines d'études
+        return Ok(domainesEtudes); // Retourne la liste de tous les domaines d'Ã©tudes
     }
 
     // GET /api/domaines-etudes/{id}
@@ -87,7 +87,7 @@ public class DomainesEtudesController : ControllerBase
             {
                 return NotFound(new
                 {
-                    message = "Domaine d'étude introuvable ou non accessible."
+                    message = "Domaine d'Ã©tude introuvable ou non accessible."
                 });
             }
 
@@ -116,7 +116,7 @@ public class DomainesEtudesController : ControllerBase
 
         if (domaineEtude == null)
         {
-            return NotFound(new { message = $"Domaine d'étude avec {id} non trouvé." });
+            return NotFound(new { message = $"Domaine d'Ã©tude avec {id} non trouvÃ©." });
         }
 
         return Ok(domaineEtude);
@@ -143,14 +143,14 @@ public class DomainesEtudesController : ControllerBase
             {
                 return BadRequest(new
                 {
-                    message = "Votre compte administrateur n'est rattaché à aucun collège."
+                    message = "Votre compte administrateur n'est rattachÃ© Ã  aucun collÃ¨ge."
                 });
             }
 
             idCollege = _currentUserService.IdCollege.Value;
         }
 
-        // Vérifier si le collège existe ou non
+        // VÃ©rifier si le collÃ¨ge existe ou non
         var college = await _context.Colleges
             .AsNoTracking()
             .FirstOrDefaultAsync(c =>
@@ -161,11 +161,11 @@ public class DomainesEtudesController : ControllerBase
         {
             return BadRequest(new
             {
-                message = $"Collège actif avec ID {idCollege} non trouvé."
+                message = $"CollÃ¨ge actif avec ID {idCollege} non trouvÃ©."
             });
         }
 
-        // Vérifier si un domaine d'étude avec le meme code existe déjà pour ce collège
+        // VÃ©rifier si un domaine d'Ã©tude avec le meme code existe dÃ©jÃ  pour ce collÃ¨ge
         var codeExiste = await _context.DomainesEtudes
             .AnyAsync(d =>
                 d.Code == code &&
@@ -173,7 +173,7 @@ public class DomainesEtudesController : ControllerBase
 
         if (codeExiste)
         {
-            return BadRequest(new { message = $"Un domaine d'étude avec le code '{code}' existe déjà pour ce collège" });
+            return BadRequest(new { message = $"Un domaine d'Ã©tude avec le code '{code}' existe dÃ©jÃ  pour ce collÃ¨ge" });
         }
 
 
@@ -226,7 +226,7 @@ public class DomainesEtudesController : ControllerBase
             {
                 return BadRequest(new
                 {
-                    message = "Votre compte administrateur n'est rattaché à aucun collège."
+                    message = "Votre compte administrateur n'est rattachÃ© Ã  aucun collÃ¨ge."
                 });
             }
 
@@ -241,11 +241,11 @@ public class DomainesEtudesController : ControllerBase
 
         if (existingDomaineEtude == null)
         {
-            return NotFound(new { message = $"Domaine d'étude avec ID {id} non trouvé." });
+            return NotFound(new { message = $"Domaine d'Ã©tude avec ID {id} non trouvÃ©." });
         }
 
 
-        // Vérifier si le collège existe ou non
+        // VÃ©rifier si le collÃ¨ge existe ou non
         var collegeExiste = await _context.Colleges
             .AnyAsync(c =>
                 c.IdCollege == idCollege &&
@@ -255,11 +255,11 @@ public class DomainesEtudesController : ControllerBase
         {
             return BadRequest(new
             {
-                message = $"Collège actif avec ID {idCollege} non trouvé."
+                message = $"CollÃ¨ge actif avec ID {idCollege} non trouvÃ©."
             });
         }
 
-        // Vérifier si un autre domaine d'étude avec le meme code existe déjà pour ce collège
+        // VÃ©rifier si un autre domaine d'Ã©tude avec le meme code existe dÃ©jÃ  pour ce collÃ¨ge
         var codeExiste = await _context.DomainesEtudes
             .AnyAsync(d =>
                 d.Code == code &&
@@ -268,7 +268,7 @@ public class DomainesEtudesController : ControllerBase
 
         if (codeExiste)
         {
-            return BadRequest(new { message = $"Un autre domaine d'étude avec le code '{code}' existe déjà pour ce collège." });
+            return BadRequest(new { message = $"Un autre domaine d'Ã©tude avec le code '{code}' existe dÃ©jÃ  pour ce collÃ¨ge." });
         }
 
         existingDomaineEtude.IdCollege = idCollege;
@@ -295,7 +295,7 @@ public class DomainesEtudesController : ControllerBase
             {
                 return BadRequest(new
                 {
-                    message = "Votre compte administrateur n'est rattaché à aucun collège."
+                    message = "Votre compte administrateur n'est rattachÃ© Ã  aucun collÃ¨ge."
                 });
             }
 
@@ -312,7 +312,7 @@ public class DomainesEtudesController : ControllerBase
         {
             return NotFound(new
             {
-                message = $"Domaine d'étude avec ID {id} non trouvé ou non accessible."
+                message = $"Domaine d'Ã©tude avec ID {id} non trouvÃ© ou non accessible."
             });
         }
 
@@ -323,9 +323,9 @@ public class DomainesEtudesController : ControllerBase
     }
 }
 
-// Ce controller gerera les routes liées aux domaines d'études, comme :
-// - GET /api/domaines-etudes : Récupérer la liste de tous les domaines d'études
-// - GET /api/domaines-etudes/{id} : Récupérer les détails d'un domaine d'étude spécifique
-// - POST /api/domaines-etudes : Créer un nouveau domaine d'étude
-// - PUT /api/domaines-etudes/{id} : Mettre à jour les informations d'un domaine d'étude existant
-// - DELETE /api/domaines-etudes/{id} : Désactiver un domaine d'étude
+// Ce controller gerera les routes liÃ©es aux domaines d'Ã©tudes, comme :
+// - GET /api/domaines-etudes : RÃ©cupÃ©rer la liste de tous les domaines d'Ã©tudes
+// - GET /api/domaines-etudes/{id} : RÃ©cupÃ©rer les dÃ©tails d'un domaine d'Ã©tude spÃ©cifique
+// - POST /api/domaines-etudes : CrÃ©er un nouveau domaine d'Ã©tude
+// - PUT /api/domaines-etudes/{id} : Mettre Ã  jour les informations d'un domaine d'Ã©tude existant
+// - DELETE /api/domaines-etudes/{id} : DÃ©sactiver un domaine d'Ã©tude

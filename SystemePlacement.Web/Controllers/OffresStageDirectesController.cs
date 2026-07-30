@@ -31,7 +31,7 @@ public class OffresStageDirectesController : ControllerBase
         return offre is null ? NotFound() : Ok(offre);
     }
 
-    // L'employeur cr�e une offre de stage directe
+    // L'employeur crée une offre de stage directe
     [HttpPost]
     [Authorize(Roles = "Employeur,Administrateur,SuperAdministrateur")]
     public async Task<IActionResult> Creer([FromBody] CreerOffreStageDirecteRequest request)
@@ -39,7 +39,7 @@ public class OffresStageDirectesController : ControllerBase
         var offre = await _service.CreerAsync(request);
 
         return offre is null
-            ? BadRequest(new { message = "Offre de stage directe impossible: employeur, �tudiant ou conditions invalides." })
+            ? BadRequest(new { message = "Offre de stage directe impossible: employeur, étudiant ou conditions invalides." })
             : CreatedAtAction(nameof(Get), new { idOffreDirecte = offre.IdOffreDirecte }, offre);
     }
 

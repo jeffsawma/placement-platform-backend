@@ -24,7 +24,7 @@ public class EntreprisesController : ControllerBase
     }
 
     // GET /api/entreprises/employeurs
-    // Sert à remplir le select d'employeurs dans la page Recommandations.
+    // Sert Ã  remplir le select d'employeurs dans la page Recommandations.
     [HttpGet("employeurs")]
     [Authorize(Roles = "ResponsableStage,Administrateur,SuperAdministrateur")]
     public async Task<IActionResult> GetEmployeurs()
@@ -59,7 +59,7 @@ public class EntreprisesController : ControllerBase
 
             if (entreprise == null)
             {
-                return NotFound(new { message = "Aucun profil d'entreprise trouvé pour cet employeur." });
+                return NotFound(new { message = "Aucun profil d'entreprise trouvÃ© pour cet employeur." });
             }
 
             return Ok(entreprise);
@@ -106,7 +106,7 @@ public class EntreprisesController : ControllerBase
 
             if (!updated)
             {
-                return NotFound(new { message = "Aucun profil d'entreprise trouvé pour cet employeur." });
+                return NotFound(new { message = "Aucun profil d'entreprise trouvÃ© pour cet employeur." });
             }
 
             return NoContent();

@@ -11,7 +11,7 @@ public class ApplicationDbContext : DbContext
     }
 
 
-    // Dev 1 - Authentification, utilisateurs et r�les
+    // Dev 1 - Authentification, utilisateurs et rôles
 
     // Dev 1 - Authentification, utilisateurs et roles
 
@@ -36,7 +36,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<ConfirmationStage> ConfirmationsStage => Set<ConfirmationStage>();
 
 
-    // Dev 2 - Param�trage, collèges et domaines d'études
+    // Dev 2 - Paramétrage, collèges et domaines d'études
 
     // Dev 2 - Parametrage, colleges et domaines d'etudes
 
