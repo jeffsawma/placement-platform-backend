@@ -24,21 +24,18 @@ public class OffreService : IOffreService
         string? lieu = null,
         string? motsCles = null)
     {
-        // Liste publique : utilisee pour la recherche d'offres.
         var offres = await _repository.GetAllAsync(type, statut, idDomaine, lieu, motsCles);
         return offres.Select(MapResumee).ToList();
     }
 
     public async Task<IReadOnlyList<OffreResumeeResponse>> GetMesOffresAsync()
     {
-        // Les admins peuvent voir toutes les offres.
         if (_currentUser.Role == "Administrateur" || _currentUser.Role == "SuperAdministrateur")
         {
             var toutesLesOffres = await _repository.GetAllAsync();
             return toutesLesOffres.Select(MapResumee).ToList();
         }
 
-        // Un employeur voit seulement les offres reliees a son profil employeur.
         var idEmployeur = await ObtenirIdEmployeurAsync();
 
         if (idEmployeur is null)
@@ -188,6 +185,7 @@ public class OffreService : IOffreService
 
         _repository.Delete(offre);
         await _repository.SaveChangesAsync();
+
         return true;
     }
 
@@ -200,13 +198,11 @@ public class OffreService : IOffreService
 
     private async Task<bool> EstProprietaireOuAdmin(Offre offre)
     {
-        // Les admins peuvent modifier toutes les offres.
         if (_currentUser.Role == "Administrateur" || _currentUser.Role == "SuperAdministrateur")
         {
             return true;
         }
 
-        // Un employeur peut modifier seulement ses propres offres.
         var idEmployeur = await ObtenirIdEmployeurAsync();
         return idEmployeur.HasValue && offre.IdEmployeur == idEmployeur.Value;
     }
@@ -242,9 +238,16 @@ public class OffreService : IOffreService
         NomEmployeur = o.Employeur?.Utilisateur is { } u
             ? $"{u.Prenom} {u.Nom}"
             : string.Empty,
+
+        // Noms des domaines pour l'affichage.
         Domaines = o.OffreDomaines
             .Select(od => od.DomaineEtude?.Nom ?? string.Empty)
             .Where(n => n != string.Empty)
+            .ToList(),
+
+        // IDs des domaines pour preselectionner les cases dans le formulaire.
+        IdsDomaines = o.OffreDomaines
+            .Select(od => od.IdDomaine)
             .ToList()
     };
 
@@ -262,10 +265,18 @@ public class OffreService : IOffreService
         NomEmployeur = o.Employeur?.Utilisateur is { } u
             ? $"{u.Prenom} {u.Nom}"
             : string.Empty,
+
+        // Noms des domaines pour l'affichage.
         Domaines = o.OffreDomaines
             .Select(od => od.DomaineEtude?.Nom ?? string.Empty)
             .Where(n => n != string.Empty)
             .ToList(),
+
+        // IDs des domaines pour preselectionner les cases dans le formulaire.
+        IdsDomaines = o.OffreDomaines
+            .Select(od => od.IdDomaine)
+            .ToList(),
+
         TypeContrat = o.TypeContrat,
         SalaireMin = o.SalaireMin,
         SalaireMax = o.SalaireMax,
@@ -286,10 +297,18 @@ public class OffreService : IOffreService
         NomEmployeur = o.Employeur?.Utilisateur is { } u
             ? $"{u.Prenom} {u.Nom}"
             : string.Empty,
+
+        // Noms des domaines pour l'affichage.
         Domaines = o.OffreDomaines
             .Select(od => od.DomaineEtude?.Nom ?? string.Empty)
             .Where(n => n != string.Empty)
             .ToList(),
+
+        // IDs des domaines pour preselectionner les cases dans le formulaire.
+        IdsDomaines = o.OffreDomaines
+            .Select(od => od.IdDomaine)
+            .ToList(),
+
         DateDebutStage = o.DateDebutStage,
         DateFinStage = o.DateFinStage,
         DureeHeuresParSemaine = o.DureeHeuresParSemaine,

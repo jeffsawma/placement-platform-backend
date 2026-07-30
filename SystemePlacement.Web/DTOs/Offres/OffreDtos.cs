@@ -3,9 +3,6 @@ using SystemePlacement.Web.Enums;
 
 namespace SystemePlacement.Web.DTOs.Offres;
 
-// ─── REQUÊTES ────────────────────────────────────────────────────────────────
-
-/// <summary>Payload pour créer une offre d'emploi (US-07).</summary>
 public class CreerOffreEmploiRequest
 {
     [Required, MaxLength(200)]
@@ -34,10 +31,10 @@ public class CreerOffreEmploiRequest
     [MaxLength(50)]
     public string? TeleTravail { get; set; }
 
+    // Liste des domaines lies a l'offre.
     public List<int> IdsDomaines { get; set; } = new();
 }
 
-/// <summary>Payload pour créer une offre de stage (US-07).</summary>
 public class CreerOffreStageRequest
 {
     [Required, MaxLength(200)]
@@ -67,10 +64,10 @@ public class CreerOffreStageRequest
     [MaxLength(50)]
     public string? Session { get; set; }
 
+    // Liste des domaines lies a l'offre de stage.
     public List<int> IdsDomaines { get; set; } = new();
 }
 
-/// <summary>Payload pour modifier une offre d'emploi (US-08).</summary>
 public class ModifierOffreEmploiRequest
 {
     [Required, MaxLength(200)]
@@ -101,10 +98,10 @@ public class ModifierOffreEmploiRequest
     [MaxLength(50)]
     public string? TeleTravail { get; set; }
 
+    // Liste complete des domaines a conserver apres modification.
     public List<int> IdsDomaines { get; set; } = new();
 }
 
-/// <summary>Payload pour modifier une offre de stage (US-09).</summary>
 public class ModifierOffreStageRequest
 {
     [Required, MaxLength(200)]
@@ -136,12 +133,10 @@ public class ModifierOffreStageRequest
     [MaxLength(50)]
     public string? Session { get; set; }
 
+    // Liste complete des domaines a conserver apres modification.
     public List<int> IdsDomaines { get; set; } = new();
 }
 
-// ─── RÉPONSES ────────────────────────────────────────────────────────────────
-
-/// <summary>Réponse commune (liste, résumé).</summary>
 public class OffreResumeeResponse
 {
     public int IdOffre { get; set; }
@@ -152,7 +147,12 @@ public class OffreResumeeResponse
     public DateTime DatePublication { get; set; }
     public DateTime? DateExpiration { get; set; }
     public string NomEmployeur { get; set; } = string.Empty;
+
+    // Noms affiches dans les cartes/tableaux.
     public List<string> Domaines { get; set; } = new();
+
+    // IDs utilises par le formulaire pour preselectionner les domaines.
+    public List<int> IdsDomaines { get; set; } = new();
 }
 
 public class OffreEmploiResponse : OffreResumeeResponse
