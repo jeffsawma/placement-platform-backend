@@ -8,7 +8,7 @@ public class EntrepriseConfiguration : IEntityTypeConfiguration<Entreprise>
 {
     public void Configure(EntityTypeBuilder<Entreprise> builder)
     {
-        // Profil entreprise lié à un employeur
+        // Profil entreprise liÃ© Ã  un employeur
         builder.ToTable("entreprises");
 
         builder.HasKey(e => e.IdEntreprise);

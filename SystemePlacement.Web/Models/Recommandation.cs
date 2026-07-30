@@ -9,7 +9,7 @@ public class Recommandation
     public int IdAuteur { get; set; }
 
     // Employeur qui va recevoir la recommandation.
-    // Nullable pour ne pas briser les anciennes recommandations dÈj‡ en BD.
+    // Nullable pour ne pas briser les anciennes recommandations d√©j√† en BD.
     public int? IdEmployeurDestinataire { get; set; }
 
     public string Commentaire { get; set; } = string.Empty;

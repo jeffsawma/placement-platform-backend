@@ -43,7 +43,7 @@ public class CandidatureResponse
     public DateTime? DateConfirmationEmploi { get; set; }
 }
 
-// Ajout l'id de l'�tudiant 'IdEtudiant'
+// Ajout l'id de l'étudiant 'IdEtudiant'
 public class CandidatureResumeeResponse
 
 {

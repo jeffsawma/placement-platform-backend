@@ -3,11 +3,11 @@ namespace SystemePlacement.Web.Models;
 public class DomaineEtude
 {
     public int IdDomaine { get; set; }
-    public int IdCollege { get; set; } // Clé étrangère vers College
+    public int IdCollege { get; set; } // ClÃ© Ã©trangÃ¨re vers College
     public string Nom { get; set; } = string.Empty;
     public string Code { get; set; } = string.Empty;
-    public bool AccepteStagiaires { get; set; } = true; // Par défaut, un domaine d'étude accepte les stagiaires
-    public bool Actif { get; set; } = true; // Par défaut, un domaine d'étude est actif
+    public bool AccepteStagiaires { get; set; } = true; // Par dÃ©faut, un domaine d'Ã©tude accepte les stagiaires
+    public bool Actif { get; set; } = true; // Par dÃ©faut, un domaine d'Ã©tude est actif
 
     // Relations
     public College? College { get; set; } // Navigation vers College

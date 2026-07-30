@@ -8,7 +8,7 @@ public class EmployeurConfiguration : IEntityTypeConfiguration<Employeur>
 {
     public void Configure(EntityTypeBuilder<Employeur> builder)
     {
-        // Profil employeur lié à un utilisateur modifié
+        // Profil employeur liÃ© Ã  un utilisateur modifiÃ©
         builder.ToTable("employeurs");
 
         builder.HasKey(e => e.IdEmployeur);
