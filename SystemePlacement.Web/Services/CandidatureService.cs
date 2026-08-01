@@ -36,16 +36,24 @@ public class CandidatureService : ICandidatureService
 
     public async Task<IReadOnlyList<CandidatureResponse>> GetParOffreAsync(int idOffre)
     {
+        if (!await PeutAccederOffreAsync(idOffre))
+            return Array.Empty<CandidatureResponse>();
+
         var candidatures = await _repository.GetByOffreAsync(idOffre);
         return candidatures.Select(Map).ToList();
     }
-
     public async Task<CandidatureResponse?> GetAsync(int idCandidature)
     {
         var candidature = await _repository.GetByIdAsync(idCandidature);
-        return candidature is null ? null : Map(candidature);
-    }
 
+        if (candidature is null ||
+            !await PeutAccederOffreAsync(candidature.IdOffre))
+        {
+            return null;
+        }
+
+        return Map(candidature);
+    }
     public async Task<ValidationCandidatureResponse> ValiderPostulationAsync(int idOffre)
     {
         if (!_currentUser.IdUtilisateur.HasValue)
@@ -158,8 +166,12 @@ public class CandidatureService : ICandidatureService
     {
         var candidature = await _repository.GetByIdAsync(idCandidature);
 
-        if (candidature is null || candidature.EmploiConfirme)
+        if (candidature is null ||
+            candidature.EmploiConfirme ||
+            !await PeutAccederOffreAsync(candidature.IdOffre))
+        {
             return false;
+        }
 
         candidature.Statut = statut;
         candidature.MessageReponseEmployeur = message;
@@ -385,9 +397,15 @@ public class CandidatureService : ICandidatureService
     public async Task<CandidatureDetailResponse?> GetDetailAsync(int idCandidature)
     {
         var candidature = await _repository.GetByIdAsync(idCandidature);
-        return candidature is null ? null : MapDetail(candidature);
-    }
 
+        if (candidature is null ||
+            !await PeutAccederOffreAsync(candidature.IdOffre))
+        {
+            return null;
+        }
+
+        return MapDetail(candidature);
+    }
     public async Task<bool> ChangerStatutAsync(int idCandidature, StatutCandidature statut)
     {
         // Centralise la logique pour ne pas oublier la creation automatique du stage.
@@ -398,8 +416,11 @@ public class CandidatureService : ICandidatureService
     {
         var document = await _repository.GetDocumentAsync(idDocument);
 
-        if (document is null)
+        if (document?.Candidature is null ||
+            !await PeutAccederOffreAsync(document.Candidature.IdOffre))
+        {
             return null;
+        }
 
         var cheminRelatif = document.CheminFichier.TrimStart('/', '\\');
         var cheminComplet = Path.Combine(_env.WebRootPath, cheminRelatif);
@@ -411,6 +432,30 @@ public class CandidatureService : ICandidatureService
         var contentType = document.ContentType ?? "application/octet-stream";
 
         return (contenu, contentType, document.NomFichier);
+    }
+
+    private async Task<bool> PeutAccederOffreAsync(int idOffre)
+    {
+        if (_currentUser.Role is "Administrateur" or "SuperAdministrateur")
+            return true;
+
+        if (_currentUser.Role != "Employeur" ||
+            !_currentUser.IdUtilisateur.HasValue)
+        {
+            return false;
+        }
+
+        var idEmployeur = await _offreRepository
+            .GetIdEmployeurByUtilisateurAsync(
+                _currentUser.IdUtilisateur.Value);
+
+        if (!idEmployeur.HasValue)
+            return false;
+
+        var offre = await _offreRepository.GetByIdAsync(idOffre);
+
+        return offre is not null &&
+               offre.IdEmployeur == idEmployeur.Value;
     }
 
     private async Task<int?> IdEtudiantCourantAsync()
