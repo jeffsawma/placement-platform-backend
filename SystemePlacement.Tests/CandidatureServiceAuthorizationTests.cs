@@ -1,3 +1,4 @@
+using SystemePlacement.Web.DTOs.Candidatures;
 using SystemePlacement.Web.Enums;
 using SystemePlacement.Web.Models;
 using SystemePlacement.Web.Repositories.Interfaces;
@@ -67,6 +68,103 @@ public class CandidatureServiceAuthorizationTests
         Assert.False(candidatureRepository.SaveChangesCalled);
     }
 
+    [Fact]
+    public async Task MettreAJourAsync_DoesNotModifyCandidature_WhenStudentDoesNotOwnIt()
+    {
+        var candidature = new Candidature
+        {
+            IdCandidature = 9,
+            IdOffre = 6,
+            IdEtudiant = 200,
+            Statut = StatutCandidature.EnAttente,
+            MessageMotivation = "Message initial",
+            LettreMotivation = "Message initial"
+        };
+
+        var candidatureRepository =
+            new FakeCandidatureRepository(
+                candidature,
+                connectedStudentId: 100);
+
+        var currentUser = new FakeCurrentUserService
+        {
+            IdUtilisateur = 500,
+            Role = "Etudiant"
+        };
+
+        var service = new CandidatureService(
+            context: null!,
+            repository: candidatureRepository,
+            offreRepository: null!,
+            currentUser: currentUser,
+            env: null!,
+            notification: null!);
+
+        var request = new MettreAJourCandidatureRequest
+        {
+            Message = "Tentative de modification interdite"
+        };
+
+        var result = await service.MettreAJourAsync(
+            candidature.IdCandidature,
+            request);
+
+        Assert.False(result);
+        Assert.Equal(
+            "Message initial",
+            candidature.MessageMotivation);
+
+        Assert.Equal(
+            "Message initial",
+            candidature.LettreMotivation);
+
+        Assert.False(candidatureRepository.UpdateCalled);
+        Assert.False(candidatureRepository.SaveChangesCalled);
+    }
+
+    [Fact]
+    public async Task RetirerAsync_DoesNotWithdrawCandidature_WhenStudentDoesNotOwnIt()
+    {
+        var candidature = new Candidature
+        {
+            IdCandidature = 9,
+            IdOffre = 6,
+            IdEtudiant = 200,
+            Statut = StatutCandidature.EnAttente
+        };
+
+        var candidatureRepository =
+            new FakeCandidatureRepository(
+                candidature,
+                connectedStudentId: 100);
+
+        var currentUser = new FakeCurrentUserService
+        {
+            IdUtilisateur = 500,
+            Role = "Etudiant"
+        };
+
+        var service = new CandidatureService(
+            context: null!,
+            repository: candidatureRepository,
+            offreRepository: null!,
+            currentUser: currentUser,
+            env: null!,
+            notification: null!);
+
+        var result = await service.RetirerAsync(
+            candidature.IdCandidature);
+
+        Assert.False(result);
+
+        Assert.Equal(
+            StatutCandidature.EnAttente,
+            candidature.Statut);
+
+        Assert.False(candidatureRepository.UpdateCalled);
+        Assert.False(candidatureRepository.SaveChangesCalled);
+    }
+
     private sealed class FakeCurrentUserService
         : ICurrentUserService
     {
@@ -83,11 +181,14 @@ public class CandidatureServiceAuthorizationTests
         : ICandidatureRepository
     {
         private readonly Candidature _candidature;
+        private readonly int? _connectedStudentId;
 
         public FakeCandidatureRepository(
-            Candidature candidature)
+            Candidature candidature,
+            int? connectedStudentId = null)
         {
             _candidature = candidature;
+            _connectedStudentId = connectedStudentId;
         }
 
         public bool UpdateCalled { get; private set; }
@@ -136,7 +237,8 @@ public class CandidatureServiceAuthorizationTests
         public Task<int?> GetIdEtudiantByUtilisateurAsync(
             int idUtilisateur)
         {
-            return Task.FromResult<int?>(null);
+            return Task.FromResult(
+                _connectedStudentId);
         }
 
         public Task<string?> GetNomEmployeurAsync(
