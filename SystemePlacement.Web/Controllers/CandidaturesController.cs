@@ -15,6 +15,7 @@ public class CandidaturesController : ControllerBase
     public CandidaturesController(ICandidatureService service) => _service = service;
 
     [HttpGet("offre/{idOffre:int}")]
+    [Authorize(Roles = "Employeur,Administrateur,SuperAdministrateur")]
     public async Task<IActionResult> GetParOffre(int idOffre)
         => Ok(await _service.GetParOffreAsync(idOffre));
 
@@ -27,6 +28,7 @@ public class CandidaturesController : ControllerBase
     }
 
     [HttpGet("{idCandidature:int}")]
+    [Authorize(Roles = "Employeur,Administrateur,SuperAdministrateur")]
     public async Task<IActionResult> Get(int idCandidature)
     {
         var candidature = await _service.GetAsync(idCandidature);
@@ -100,6 +102,7 @@ public class CandidaturesController : ControllerBase
     }
 
     [HttpPut("{idCandidature:int}/statut")]
+    [Authorize(Roles = "Employeur,Administrateur,SuperAdministrateur")]
     public async Task<IActionResult> ChangerStatut(int idCandidature, ChangerStatutRequest request)
         => await _service.ChangerStatutAsync(idCandidature, request) ? NoContent() : NotFound();
 
