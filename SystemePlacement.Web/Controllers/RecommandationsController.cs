@@ -18,14 +18,14 @@ public class RecommandationsController : ControllerBase
     }
 
     [HttpGet("etudiant/{idEtudiant:int}")]
-    [Authorize(Roles = "Employeur,ResponsableStage,Administrateur,SuperAdministrateur")]
+    [Authorize(Roles = "ResponsableStage,Administrateur,SuperAdministrateur")]
     public async Task<IActionResult> GetByEtudiant(int idEtudiant)
     {
         var recommandations = await _service.GetByEtudiantAsync(idEtudiant);
         return Ok(recommandations);
     }
 
-    // Permet à l'employeur connecté de voir les recommandations qui lui sont destinées.
+    // Permet ÃƒÂ  l'employeur connectÃƒÂ© de voir les recommandations qui lui sont destinÃƒÂ©es.
     [HttpGet("recues")]
     [Authorize(Roles = "Employeur")]
     public async Task<IActionResult> GetMesRecommandationsRecues()
@@ -35,7 +35,7 @@ public class RecommandationsController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = "Employeur,ResponsableStage,Administrateur,SuperAdministrateur")]
+    [Authorize(Roles = "ResponsableStage,Administrateur,SuperAdministrateur")]
     public async Task<IActionResult> Creer(
         [FromForm] CreerRecommandationRequest request,
         IFormFile? lettre)
@@ -67,7 +67,7 @@ public class RecommandationsController : ControllerBase
     }
 
     [HttpDelete("{idRecommandation:int}")]
-    [Authorize(Roles = "Employeur,ResponsableStage,Administrateur,SuperAdministrateur")]
+    [Authorize(Roles = "ResponsableStage,Administrateur,SuperAdministrateur")]
     public async Task<IActionResult> Supprimer(int idRecommandation)
     {
         var succes = await _service.SupprimerAsync(idRecommandation);

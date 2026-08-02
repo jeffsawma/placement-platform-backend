@@ -26,9 +26,17 @@ public class RecommandationService : IRecommandationService
         _context = context;
     }
 
-    public async Task<IReadOnlyList<RecommandationResponse>> GetByEtudiantAsync(int idEtudiant)
+        public async Task<IReadOnlyList<RecommandationResponse>> GetByEtudiantAsync(
+        int idEtudiant)
     {
-        var recommandations = await _repository.GetByEtudiantAsync(idEtudiant);
+        if (!await PeutGererEtudiantAsync(idEtudiant))
+        {
+            return Array.Empty<RecommandationResponse>();
+        }
+
+        var recommandations =
+            await _repository.GetByEtudiantAsync(idEtudiant);
+
         return recommandations.Select(Map).ToList();
     }
 
@@ -39,7 +47,7 @@ public class RecommandationService : IRecommandationService
             return [];
         }
 
-        // On récupère le profil employeur lié à l'utilisateur connecté.
+        // On rÃ©cupÃ¨re le profil employeur liÃ© Ã  l'utilisateur connectÃ©.
         var employeur = await _context.Employeurs
             .AsNoTracking()
             .FirstOrDefaultAsync(e => e.IdUtilisateur == _currentUser.IdUtilisateur.Value);
@@ -54,9 +62,16 @@ public class RecommandationService : IRecommandationService
         return recommandations.Select(Map).ToList();
     }
 
-    public async Task<RecommandationResponse?> CreerAsync(CreerRecommandationRequest request, IFormFile? lettre)
+        public async Task<RecommandationResponse?> CreerAsync(
+        CreerRecommandationRequest request,
+        IFormFile? lettre)
     {
         if (!_currentUser.IdUtilisateur.HasValue)
+        {
+            return null;
+        }
+
+        if (!await PeutGererEtudiantAsync(request.IdEtudiant))
         {
             return null;
         }
@@ -66,7 +81,7 @@ public class RecommandationService : IRecommandationService
             return null;
         }
 
-        // Vérifie que l'employeur choisi existe vraiment.
+        // VÃ©rifie que l'employeur choisi existe vraiment.
         var employeurExiste = await _context.Employeurs
             .AsNoTracking()
             .AnyAsync(e => e.IdEmployeur == request.IdEmployeurDestinataire.Value);
@@ -114,9 +129,12 @@ public class RecommandationService : IRecommandationService
     public async Task<(byte[] Contenu, string ContentType, string NomFichier)?> TelechargerLettreAsync(
         int idRecommandation)
     {
-        var recommandation = await _repository.GetByIdAsync(idRecommandation);
+                var recommandation =
+            await _repository.GetByIdAsync(idRecommandation);
 
-        if (recommandation?.CheminLettreRecommandation is null)
+        if (recommandation is null ||
+            recommandation.CheminLettreRecommandation is null ||
+            !await PeutConsulterRecommandationAsync(recommandation))
         {
             return null;
         }
@@ -141,9 +159,11 @@ public class RecommandationService : IRecommandationService
 
     public async Task<bool> SupprimerAsync(int idRecommandation)
     {
-        var recommandation = await _repository.GetByIdAsync(idRecommandation);
+                var recommandation =
+            await _repository.GetByIdAsync(idRecommandation);
 
-        if (recommandation is null)
+        if (recommandation is null ||
+            !PeutSupprimerRecommandation(recommandation))
         {
             return false;
         }
@@ -166,6 +186,88 @@ public class RecommandationService : IRecommandationService
         return true;
     }
 
+    private async Task<bool> PeutGererEtudiantAsync(
+        int idEtudiant)
+    {
+        if (_currentUser.Role == "SuperAdministrateur")
+        {
+            return true;
+        }
+
+        if (_currentUser.Role != "ResponsableStage" &&
+            _currentUser.Role != "Administrateur")
+        {
+            return false;
+        }
+
+        if (!_currentUser.IdCollege.HasValue)
+        {
+            return false;
+        }
+
+        var idCollege = _currentUser.IdCollege.Value;
+
+        return await _context.Etudiants
+            .AsNoTracking()
+            .AnyAsync(e =>
+                e.IdEtudiant == idEtudiant &&
+                e.Utilisateur != null &&
+                e.Utilisateur.IdCollege == idCollege &&
+                e.Utilisateur.Actif);
+    }
+
+    private async Task<bool> PeutConsulterRecommandationAsync(
+        Recommandation recommandation)
+    {
+        if (!_currentUser.IdUtilisateur.HasValue)
+        {
+            return false;
+        }
+
+        if (_currentUser.Role == "SuperAdministrateur")
+        {
+            return true;
+        }
+
+        if (_currentUser.Role == "ResponsableStage" ||
+            _currentUser.Role == "Administrateur")
+        {
+            return await PeutGererEtudiantAsync(
+                recommandation.IdEtudiant);
+        }
+
+        if (_currentUser.Role == "Employeur")
+        {
+            var idUtilisateur =
+                _currentUser.IdUtilisateur.Value;
+
+            var idEmployeur = await _context.Employeurs
+                .AsNoTracking()
+                .Where(e =>
+                    e.IdUtilisateur == idUtilisateur)
+                .Select(e => (int?)e.IdEmployeur)
+                .FirstOrDefaultAsync();
+
+            return idEmployeur.HasValue &&
+                recommandation.IdEmployeurDestinataire ==
+                idEmployeur.Value;
+        }
+
+        return false;
+    }
+
+    private bool PeutSupprimerRecommandation(
+        Recommandation recommandation)
+    {
+        if (!_currentUser.IdUtilisateur.HasValue)
+        {
+            return false;
+        }
+
+        return _currentUser.Role == "SuperAdministrateur" ||
+            recommandation.IdAuteur ==
+            _currentUser.IdUtilisateur.Value;
+    }
     private static RecommandationResponse Map(Recommandation recommandation)
     {
         var nomEntreprise =
