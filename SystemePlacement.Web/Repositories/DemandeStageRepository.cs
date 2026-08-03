@@ -23,10 +23,23 @@ public class DemandeStageRepository : IDemandeStageRepository
     public async Task AddAsync(DemandeStage demande) =>
         await _context.DemandesStage.AddAsync(demande);
 
+    public Task<DemandeStage?> GetByIdAsync(int idDemandeStage) =>
+        _context.DemandesStage
+            .AsNoTracking()
+            .Include(d => d.DomaineEtude)
+                .ThenInclude(dom => dom!.College)
+            .Include(d => d.Etudiant)
+                .ThenInclude(e => e!.Utilisateur)
+            .FirstOrDefaultAsync(d =>
+                d.IdDemandeStage == idDemandeStage);
+
     public Task<List<DemandeStage>> GetByEtudiantAsync(int idEtudiant) =>
         _context.DemandesStage
             .AsNoTracking()
             .Include(d => d.DomaineEtude)
+                .ThenInclude(dom => dom!.College)
+            .Include(d => d.Etudiant)
+                .ThenInclude(e => e!.Utilisateur)
             .Where(d => d.IdEtudiant == idEtudiant)
             .OrderByDescending(d => d.DateCreation)
             .ToListAsync();
@@ -68,6 +81,16 @@ public class DemandeStageRepository : IDemandeStageRepository
             .Select(od => od.Offre!.IdEmployeur)
             .Distinct()
             .ToListAsync();
+
+    public Task<bool> EmployeurHasOfferInDomainAsync(
+        int idUtilisateur,
+        int idDomaine) =>
+        _context.OffreDomaines
+            .AnyAsync(od =>
+                od.IdDomaine == idDomaine &&
+                od.Offre != null &&
+                od.Offre.Employeur != null &&
+                od.Offre.Employeur.IdUtilisateur == idUtilisateur);
 
     public Task SaveChangesAsync() => _context.SaveChangesAsync();
 }
