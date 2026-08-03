@@ -54,6 +54,13 @@ public class DemandeStageService : IDemandeStageService
                 $"{nomEtudiant} a formulé une demande de stage en « {nomDomaine} ».",
                 "/responsable/suivi-etudiants");
 
+        var idsEmployeurs = await _repository.GetIdsEmployeursByDomaineAsync(request.IdDomaine);
+        foreach (var idEmployeur in idsEmployeurs)
+            await _notification.NotifierEmployeurAsync(
+                idEmployeur,
+                $"{nomEtudiant} recherche un stage en « {nomDomaine} », un domaine de vos offres.",
+                "/employeur/demandes-stage");
+
         return Map(demande);
     }
 

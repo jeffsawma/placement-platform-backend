@@ -11,5 +11,6 @@ public interface IDemandeStageRepository
     Task<string?> GetNomDomaineAsync(int idDomaine);
     Task<int?> GetIdCollegeByDomaineAsync(int idDomaine);
     Task<string?> GetNomEtudiantAsync(int idEtudiant);
+    Task<List<int>> GetIdsEmployeursByDomaineAsync(int idDomaine);
     Task SaveChangesAsync();
 }

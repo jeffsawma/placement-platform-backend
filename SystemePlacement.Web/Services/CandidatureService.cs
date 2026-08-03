@@ -288,6 +288,17 @@ public class CandidatureService : ICandidatureService
             $"Votre embauche pour l'offre \"{candidature.Offre.Titre}\" a ete confirmee par l'employeur.",
             "/mes-candidatures");
 
+        if (candidature.Etudiant.Utilisateur?.IdCollege is int idCollegeEtudiant)
+        {
+            var nomEtudiant = $"{candidature.Etudiant.Utilisateur.Prenom} {candidature.Etudiant.Utilisateur.Nom}";
+            var nomEmployeur = await _repository.GetNomEmployeurAsync(candidature.Offre.IdEmployeur) ?? "un employeur";
+
+            await _notification.NotifierResponsablesCollegeAsync(
+                idCollegeEtudiant,
+                $"{nomEtudiant} a confirmé son embauche chez {nomEmployeur} pour « {candidature.Offre.Titre} ».",
+                "/responsable/suivi-etudiants");
+        }
+
         return true;
     }
 
@@ -390,6 +401,14 @@ public class CandidatureService : ICandidatureService
 
         _repository.Update(candidature);
         await _repository.SaveChangesAsync();
+
+        if (candidature.Offre is not null)
+        {
+            await _notification.NotifierEmployeurAsync(
+                candidature.Offre.IdEmployeur,
+                $"Un candidat a retiré sa candidature pour « {candidature.Offre.Titre} ».",
+                "/employeur/candidatures");
+        }
 
         return true;
     }

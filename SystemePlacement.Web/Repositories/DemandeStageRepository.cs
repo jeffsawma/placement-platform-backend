@@ -62,5 +62,12 @@ public class DemandeStageRepository : IDemandeStageRepository
                 : null)
             .FirstOrDefaultAsync();
 
+    public Task<List<int>> GetIdsEmployeursByDomaineAsync(int idDomaine) =>
+        _context.OffreDomaines
+            .Where(od => od.IdDomaine == idDomaine && od.Offre != null)
+            .Select(od => od.Offre!.IdEmployeur)
+            .Distinct()
+            .ToListAsync();
+
     public Task SaveChangesAsync() => _context.SaveChangesAsync();
 }
