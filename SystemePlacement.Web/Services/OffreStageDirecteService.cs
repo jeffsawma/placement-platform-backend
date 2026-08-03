@@ -130,6 +130,16 @@ public class OffreStageDirecteService : IOffreStageDirecteService
             "/offres-stage-recues");
 
         var saved = await _repository.GetByIdAsync(offre.IdOffreDirecte);
+
+        if (saved?.Etudiant?.Utilisateur?.IdCollege is int idCollegeEtudiant)
+        {
+            var nomEtudiant = $"{saved.Etudiant.Utilisateur.Prenom} {saved.Etudiant.Utilisateur.Nom}";
+            await _notification.NotifierResponsablesCollegeAsync(
+                idCollegeEtudiant,
+                $"Une offre de stage directe a été proposée à {nomEtudiant}.",
+                "/responsable/suivi-etudiants");
+        }
+
         return saved is null ? Map(offre) : Map(saved);
     }
 
@@ -220,6 +230,15 @@ public class OffreStageDirecteService : IOffreStageDirecteService
             offre.IdEmployeur,
             $"L'étudiant a {(request.Accepte ? "accepté" : "refusé")} votre offre de stage directe.",
             "/employeur/offres-stage-directes");
+
+        if (offre.Etudiant?.Utilisateur?.IdCollege is int idCollegeEtu)
+        {
+            var nomEtu = $"{offre.Etudiant.Utilisateur.Prenom} {offre.Etudiant.Utilisateur.Nom}";
+            await _notification.NotifierResponsablesCollegeAsync(
+                idCollegeEtu,
+                $"{nomEtu} a {(request.Accepte ? "accepté" : "refusé")} une offre de stage directe.",
+                "/responsable/suivi-etudiants");
+        }
 
         return true;
     }
