@@ -1,4 +1,4 @@
-﻿using SystemePlacement.Web.Models;
+using SystemePlacement.Web.Models;
 
 namespace SystemePlacement.Web.Repositories.Interfaces;
 public interface IOffreStageDirecteRepository
@@ -9,6 +9,7 @@ public interface IOffreStageDirecteRepository
     Task<int?> GetIdEtudiantByUtilisateurAsync(int idUtilisateur);
     Task<List<OffreStageDirecte>> GetByEtudiantAsync(int idEtudiant);
     Task<bool> ExistsActiveForCandidatureAsync(int idCandidature);
+    Task<bool> ExistsActiveForDemandeStageAsync(int idEmployeur, int idDemandeStage);
     Task AddAsync(OffreStageDirecte offreStageDirecte); // Ajouter une nouvelle offre de stage directe à la base de données
     Task SaveChangesAsync();
 }

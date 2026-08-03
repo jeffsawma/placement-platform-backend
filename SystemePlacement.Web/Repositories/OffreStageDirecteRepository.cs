@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using SystemePlacement.Web.Data;
 using SystemePlacement.Web.Enums;
 using SystemePlacement.Web.Models;
@@ -55,6 +55,15 @@ public class OffreStageDirecteRepository : IOffreStageDirecteRepository
     public Task<bool> ExistsActiveForCandidatureAsync(int idCandidature) =>
         _context.OffresStageDirectes.AnyAsync(o =>
             o.IdCandidature == idCandidature &&
+            (o.Statut == StatutOffreStageDirecte.Envoyee ||
+             o.Statut == StatutOffreStageDirecte.Acceptee));
+
+    public Task<bool> ExistsActiveForDemandeStageAsync(
+        int idEmployeur,
+        int idDemandeStage) =>
+        _context.OffresStageDirectes.AnyAsync(o =>
+            o.IdEmployeur == idEmployeur &&
+            o.IdDemandeStage == idDemandeStage &&
             (o.Statut == StatutOffreStageDirecte.Envoyee ||
              o.Statut == StatutOffreStageDirecte.Acceptee));
 
