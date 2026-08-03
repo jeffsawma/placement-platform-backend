@@ -20,6 +20,7 @@ public class DemandeStageConfiguration : IEntityTypeConfiguration<DemandeStage>
             .HasColumnName("id_etudiant")
             .IsRequired();
 
+        // La demande pointe vers un domaine global.
         builder.Property(d => d.IdDomaine)
             .HasColumnName("id_domaine")
             .IsRequired();
@@ -52,7 +53,7 @@ public class DemandeStageConfiguration : IEntityTypeConfiguration<DemandeStage>
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne(d => d.DomaineEtude)
-            .WithMany()
+            .WithMany(domaine => domaine.DemandesStage)
             .HasForeignKey(d => d.IdDomaine)
             .OnDelete(DeleteBehavior.Restrict);
     }
