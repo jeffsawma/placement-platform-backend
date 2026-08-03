@@ -31,6 +31,18 @@ public class DemandeStageService : IDemandeStageService
         if (idEtudiant is null)
             return null;
 
+        // On valide que le domaine existe et qu'il est disponible pour le college de l'etudiant.
+        var idCollegeEtudiant = await _repository.GetIdCollegeEtudiantAsync(idEtudiant.Value);
+        if (idCollegeEtudiant is null)
+            return null;
+
+        var domaineDisponible = await _repository.DomaineExistePourCollegeAsync(
+            request.IdDomaine,
+            idCollegeEtudiant.Value);
+
+        if (!domaineDisponible)
+            return null;
+
         var demande = new DemandeStage
         {
             IdEtudiant = idEtudiant.Value,
@@ -46,23 +58,25 @@ public class DemandeStageService : IDemandeStageService
         await _repository.SaveChangesAsync();
 
         var nomDomaine = await _repository.GetNomDomaineAsync(request.IdDomaine) ?? "un domaine";
-        var nomEtudiant = await _repository.GetNomEtudiantAsync(idEtudiant.Value) ?? "Un étudiant";
-        var idCollege = await _repository.GetIdCollegeByDomaineAsync(request.IdDomaine);
-        if (idCollege.HasValue)
-            await _notification.NotifierResponsablesCollegeAsync(
-                idCollege.Value,
-                $"{nomEtudiant} a formulé une demande de stage en « {nomDomaine} ».",
-                "/responsable/suivi-etudiants");
+        var nomEtudiant = await _repository.GetNomEtudiantAsync(idEtudiant.Value) ?? "Un etudiant";
 
+        // Les responsables du college de l'etudiant sont notifies.
+        await _notification.NotifierResponsablesCollegeAsync(
+            idCollegeEtudiant.Value,
+            $"{nomEtudiant} a formule une demande de stage en « {nomDomaine} ».",
+            "/responsable/suivi-etudiants");
+
+        // Les employeurs qui ont deja des offres dans ce domaine sont notifies.
         var idsEmployeurs = await _repository.GetIdsEmployeursByDomaineAsync(request.IdDomaine);
         foreach (var idEmployeur in idsEmployeurs)
+        {
             await _notification.NotifierEmployeurAsync(
                 idEmployeur,
                 $"{nomEtudiant} recherche un stage en « {nomDomaine} », un domaine de vos offres.",
                 "/employeur/demandes-stage");
+        }
 
-        var demandeComplete = await _repository.GetByIdAsync(
-            demande.IdDemandeStage);
+        var demandeComplete = await _repository.GetByIdAsync(demande.IdDemandeStage);
 
         return Map(demandeComplete ?? demande);
     }
@@ -104,7 +118,10 @@ public class DemandeStageService : IDemandeStageService
         IdDemandeStage = d.IdDemandeStage,
         IdDomaine = d.IdDomaine,
         NomDomaine = d.DomaineEtude?.Nom ?? string.Empty,
-        NomCollege = d.DomaineEtude?.College?.Nom ?? string.Empty,
+
+        // Le college vient maintenant de l'etudiant, pas du domaine.
+        NomCollege = d.Etudiant?.Utilisateur?.College?.Nom ?? string.Empty,
+
         NomEtudiant = d.Etudiant?.Utilisateur?.Nom ?? string.Empty,
         PrenomEtudiant = d.Etudiant?.Utilisateur?.Prenom ?? string.Empty,
         CourrielEtudiant = d.Etudiant?.Utilisateur?.Courriel,

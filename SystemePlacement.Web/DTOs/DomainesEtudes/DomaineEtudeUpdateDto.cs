@@ -1,11 +1,13 @@
-﻿namespace SystemePlacement.Web.DTOs.DomainesEtudes
+﻿namespace SystemePlacement.Web.DTOs.DomainesEtudes;
+
+public class DomaineEtudeUpdateDto
 {
-    public class DomaineEtudeUpdateDto
-    {
-        public int IdCollege { get; set; }
-        public string Nom { get; set; } = string.Empty;
-        public string Code { get; set; } = string.Empty;
-        public bool AccepteStagiaires { get; set; } = true;
-        public bool Actif { get; set; } = true;
-    }
+    // Nom global du domaine, exemple : Informatique.
+    public string Nom { get; set; } = string.Empty;
+
+    // Code global du domaine, exemple : INFO.
+    public string Code { get; set; } = string.Empty;
+
+    // Permet d'activer ou desactiver le domaine global.
+    public bool Actif { get; set; } = true;
 }

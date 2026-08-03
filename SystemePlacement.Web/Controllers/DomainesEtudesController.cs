@@ -9,13 +9,16 @@ using SystemePlacement.Web.Services.Interfaces;
 namespace SystemePlacement.Web.Controllers;
 
 [ApiController]
-[Route("api/domaines-etudes")] // Route de base pour les domaines d'études
+[Route("api/domaines-etudes")]
+[Authorize]
 public class DomainesEtudesController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
 
-    public DomainesEtudesController(ApplicationDbContext context, ICurrentUserService currentUserService)
+    public DomainesEtudesController(
+        ApplicationDbContext context,
+        ICurrentUserService currentUserService)
     {
         _context = context;
         _currentUserService = currentUserService;
@@ -24,20 +27,21 @@ public class DomainesEtudesController : ControllerBase
     private bool IsAdministrateur =>
         _currentUserService.Role == "Administrateur";
 
+    private bool IsSuperAdministrateur =>
+        _currentUserService.Role == "SuperAdministrateur";
 
     // GET /api/domaines-etudes
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<DomaineEtudeResponseDto>>> GetDomainesEtudes(bool includeInactive = false)
+    public async Task<ActionResult<IEnumerable<DomaineEtudeResponseDto>>> GetDomainesEtudes(
+        bool includeInactive = false)
     {
-        var query = from domaine in _context.DomainesEtudes.AsNoTracking()
-                    join college in _context.Colleges.AsNoTracking()
-                        on domaine.IdCollege equals college.IdCollege
-                    select new
-                    {
-                        Domaine = domaine,
-                        College = college
-                    };
+        var query = _context.DomainesEtudes
+            .AsNoTracking()
+            .Include(d => d.CollegeDomaines)
+                .ThenInclude(cd => cd.College)
+            .AsQueryable();
 
+        // Un administrateur voit seulement les domaines lies a son college.
         if (IsAdministrateur)
         {
             if (!_currentUserService.IdCollege.HasValue)
@@ -47,85 +51,68 @@ public class DomainesEtudesController : ControllerBase
 
             var idCollege = _currentUserService.IdCollege.Value;
 
-            query = query.Where(x => x.Domaine.IdCollege == idCollege);
+            query = query.Where(d =>
+                d.CollegeDomaines.Any(cd =>
+                    cd.IdCollege == idCollege &&
+                    (includeInactive || cd.Actif)));
         }
-
 
         if (!includeInactive)
         {
-            query = query.Where(x => x.Domaine.Actif);
+            query = query.Where(d => d.Actif);
         }
 
-        var domainesEtudes = await query
-            .OrderBy(x => x.Domaine.Nom)
-            .Select(x => new DomaineEtudeResponseDto
-            {
-                IdDomaine = x.Domaine.IdDomaine,
-                IdCollege = x.Domaine.IdCollege,
-                NomCollege = x.College.Nom,
-                Nom = x.Domaine.Nom,
-                Code = x.Domaine.Code,
-                AccepteStagiaires = x.Domaine.AccepteStagiaires,
-                Actif = x.Domaine.Actif
-            })
+        var domaines = await query
+            .OrderBy(d => d.Nom)
             .ToListAsync();
 
-        return Ok(domainesEtudes); // Retourne la liste de tous les domaines d'études
+        return Ok(domaines.Select(MapDomaineResponse));
     }
 
     // GET /api/domaines-etudes/{id}
-    [HttpGet("{id}")]
+    [HttpGet("{id:int}")]
     public async Task<ActionResult<DomaineEtudeResponseDto>> GetDomaineEtudeById(int id)
     {
+        var query = _context.DomainesEtudes
+            .AsNoTracking()
+            .Include(d => d.CollegeDomaines)
+                .ThenInclude(cd => cd.College)
+            .AsQueryable();
 
-        var isAdministrateur = IsAdministrateur;
-        var idCollegeAdministrateur = 0;
-
-        if (isAdministrateur)
+        if (IsAdministrateur)
         {
             if (!_currentUserService.IdCollege.HasValue)
             {
                 return NotFound(new
                 {
-                    message = "Domaine d'étude introuvable ou non accessible."
+                    message = "Domaine d'etude introuvable ou non accessible."
                 });
             }
 
-            idCollegeAdministrateur = _currentUserService.IdCollege.Value;
+            var idCollege = _currentUserService.IdCollege.Value;
+
+            query = query.Where(d =>
+                d.CollegeDomaines.Any(cd => cd.IdCollege == idCollege));
         }
 
-        var domaineEtude = await (
-            from domaine in _context.DomainesEtudes.AsNoTracking()
-            join college in _context.Colleges.AsNoTracking()
-                on domaine.IdCollege equals college.IdCollege
-            where domaine.IdDomaine == id
-                && (!isAdministrateur ||
-                    domaine.IdCollege == idCollegeAdministrateur)
+        var domaine = await query.FirstOrDefaultAsync(d => d.IdDomaine == id);
 
-            select new DomaineEtudeResponseDto
-            {
-                IdDomaine = domaine.IdDomaine,
-                IdCollege = domaine.IdCollege,
-                NomCollege = college.Nom,
-                Nom = domaine.Nom,
-                Code = domaine.Code,
-                AccepteStagiaires = domaine.AccepteStagiaires,
-                Actif = domaine.Actif
-            })
-            .FirstOrDefaultAsync();
-
-        if (domaineEtude == null)
+        if (domaine == null)
         {
-            return NotFound(new { message = $"Domaine d'étude avec {id} non trouvé." });
+            return NotFound(new
+            {
+                message = $"Domaine d'etude avec ID {id} non trouve."
+            });
         }
 
-        return Ok(domaineEtude);
+        return Ok(MapDomaineResponse(domaine));
     }
 
     // POST /api/domaines-etudes
     [HttpPost]
     [Authorize(Roles = "SuperAdministrateur,Administrateur")]
-    public async Task<ActionResult<DomaineEtudeResponseDto>> CreateDomaineEtude([FromBody] DomaineEtudeCreateDto dto)
+    public async Task<ActionResult<DomaineEtudeResponseDto>> CreateDomaineEtude(
+        [FromBody] DomaineEtudeCreateDto dto)
     {
         var nom = dto.Nom.Trim();
         var code = dto.Code.Trim();
@@ -135,147 +122,157 @@ public class DomainesEtudesController : ControllerBase
             return BadRequest(new { message = "Le nom et le code sont obligatoires." });
         }
 
-        var idCollege = dto.IdCollege;
+        var domaineExistant = await _context.DomainesEtudes
+            .Include(d => d.CollegeDomaines)
+                .ThenInclude(cd => cd.College)
+            .FirstOrDefaultAsync(d =>
+                d.Nom == nom ||
+                d.Code == code);
 
         if (IsAdministrateur)
         {
-            if (!_currentUserService.IdCollege.HasValue)
-            {
-                return BadRequest(new
-                {
-                    message = "Votre compte administrateur n'est rattaché à aucun collège."
-                });
-            }
-
-            idCollege = _currentUserService.IdCollege.Value;
+            return await CreateOuLierDomainePourAdministrateur(dto, domaineExistant, nom, code);
         }
 
-        // Vérifier si le collège existe ou non
-        var college = await _context.Colleges
-            .AsNoTracking()
-            .FirstOrDefaultAsync(c =>
-                c.IdCollege == idCollege &&
-                c.Actif);
+        if (IsSuperAdministrateur)
+        {
+            return await CreateOuLierDomainePourSuperAdministrateur(dto, domaineExistant, nom, code);
+        }
 
-        if (college == null)
+        return Forbid();
+    }
+
+    // PUT /api/domaines-etudes/{id}
+    [HttpPut("{id:int}")]
+    [Authorize(Roles = "SuperAdministrateur")]
+    public async Task<IActionResult> UpdateDomaineEtude(
+        int id,
+        [FromBody] DomaineEtudeUpdateDto dto)
+    {
+        var nom = dto.Nom.Trim();
+        var code = dto.Code.Trim();
+
+        if (string.IsNullOrWhiteSpace(nom) || string.IsNullOrWhiteSpace(code))
+        {
+            return BadRequest(new { message = "Le nom et le code sont obligatoires." });
+        }
+
+        var domaine = await _context.DomainesEtudes
+            .FirstOrDefaultAsync(d => d.IdDomaine == id);
+
+        if (domaine == null)
+        {
+            return NotFound(new { message = $"Domaine d'etude avec ID {id} non trouve." });
+        }
+
+        var doublon = await _context.DomainesEtudes
+            .AnyAsync(d =>
+                d.IdDomaine != id &&
+                (d.Nom == nom || d.Code == code));
+
+        if (doublon)
         {
             return BadRequest(new
             {
-                message = $"Collège actif avec ID {idCollege} non trouvé."
+                message = "Un autre domaine avec le meme nom ou le meme code existe deja."
             });
         }
 
-        // Vérifier si un domaine d'étude avec le meme code existe déjà pour ce collège
-        var codeExiste = await _context.DomainesEtudes
-            .AnyAsync(d =>
-                d.Code == code &&
-                d.IdCollege == idCollege);
+        domaine.Nom = nom;
+        domaine.Code = code;
+        domaine.Actif = dto.Actif;
 
-        if (codeExiste)
+        await _context.SaveChangesAsync();
+
+        return NoContent();
+    }
+
+    // POST /api/domaines-etudes/{idDomaine}/colleges/{idCollege}
+    [HttpPost("{idDomaine:int}/colleges/{idCollege:int}")]
+    [Authorize(Roles = "SuperAdministrateur")]
+    public async Task<IActionResult> AjouterCollegeAuDomaine(
+        int idDomaine,
+        int idCollege,
+        [FromBody] CollegeDomaineUpdateDto dto)
+    {
+        var domaineExiste = await _context.DomainesEtudes
+            .AnyAsync(d => d.IdDomaine == idDomaine);
+
+        if (!domaineExiste)
         {
-            return BadRequest(new { message = $"Un domaine d'étude avec le code '{code}' existe déjà pour ce collège" });
+            return NotFound(new { message = "Domaine introuvable." });
         }
 
+        var collegeExiste = await _context.Colleges
+            .AnyAsync(c => c.IdCollege == idCollege && c.Actif);
 
-        var domaineEtude = new DomaineEtude
+        if (!collegeExiste)
         {
-            IdCollege = idCollege, // FK
-            Nom = nom,
-            Code = code,
+            return NotFound(new { message = "College actif introuvable." });
+        }
+
+        var lienExiste = await _context.CollegeDomaines
+            .AnyAsync(cd => cd.IdDomaine == idDomaine && cd.IdCollege == idCollege);
+
+        if (lienExiste)
+        {
+            return BadRequest(new
+            {
+                message = "Ce college est deja lie a ce domaine."
+            });
+        }
+
+        var lien = new CollegeDomaine
+        {
+            IdDomaine = idDomaine,
+            IdCollege = idCollege,
             AccepteStagiaires = dto.AccepteStagiaires,
             Actif = dto.Actif
         };
 
-        _context.DomainesEtudes.Add(domaineEtude);
+        _context.CollegeDomaines.Add(lien);
         await _context.SaveChangesAsync();
 
-        var response = new DomaineEtudeResponseDto
-        {
-            IdDomaine = domaineEtude.IdDomaine,
-            IdCollege = domaineEtude.IdCollege,
-            NomCollege = college.Nom,
-            Nom = domaineEtude.Nom,
-            Code = domaineEtude.Code,
-            AccepteStagiaires = domaineEtude.AccepteStagiaires,
-            Actif = domaineEtude.Actif
-        };
-
-        return CreatedAtAction(nameof(GetDomaineEtudeById), new { id = domaineEtude.IdDomaine }, response);
+        return NoContent();
     }
 
-    // PUT /api/domaines-etudes
-    [HttpPut("{id}")]
+    // PUT /api/domaines-etudes/{idDomaine}/colleges/{idCollege}
+    [HttpPut("{idDomaine:int}/colleges/{idCollege:int}")]
     [Authorize(Roles = "SuperAdministrateur,Administrateur")]
-    public async Task<IActionResult> UpdateDomaineEtude(int id, [FromBody] DomaineEtudeUpdateDto dto)
+    public async Task<IActionResult> ModifierLienCollegeDomaine(
+        int idDomaine,
+        int idCollege,
+        [FromBody] CollegeDomaineUpdateDto dto)
     {
-        var nom = dto.Nom.Trim();
-        var code = dto.Code.Trim();
-
-        if (string.IsNullOrWhiteSpace(nom) || string.IsNullOrWhiteSpace(code))
-        {
-            return BadRequest(new { message = "Le nom et le code sont obligatoires." });
-        }
-
-        var domaineQuery = _context.DomainesEtudes.AsQueryable();
-
-        var idCollege = dto.IdCollege;
-
         if (IsAdministrateur)
         {
             if (!_currentUserService.IdCollege.HasValue)
             {
                 return BadRequest(new
                 {
-                    message = "Votre compte administrateur n'est rattaché à aucun collège."
+                    message = "Votre compte administrateur n'est rattache a aucun college."
                 });
             }
 
+            // Un admin peut seulement modifier le lien de son propre college.
             idCollege = _currentUserService.IdCollege.Value;
-
-            domaineQuery = domaineQuery.Where(
-                d => d.IdCollege == idCollege);
         }
 
-        var existingDomaineEtude = await domaineQuery
-            .FirstOrDefaultAsync(d => d.IdDomaine == id);
+        var lien = await _context.CollegeDomaines
+            .FirstOrDefaultAsync(cd =>
+                cd.IdDomaine == idDomaine &&
+                cd.IdCollege == idCollege);
 
-        if (existingDomaineEtude == null)
+        if (lien == null)
         {
-            return NotFound(new { message = $"Domaine d'étude avec ID {id} non trouvé." });
-        }
-
-
-        // Vérifier si le collège existe ou non
-        var collegeExiste = await _context.Colleges
-            .AnyAsync(c =>
-                c.IdCollege == idCollege &&
-                c.Actif);
-
-        if (!collegeExiste)
-        {
-            return BadRequest(new
+            return NotFound(new
             {
-                message = $"Collège actif avec ID {idCollege} non trouvé."
+                message = "Lien entre ce college et ce domaine introuvable."
             });
         }
 
-        // Vérifier si un autre domaine d'étude avec le meme code existe déjà pour ce collège
-        var codeExiste = await _context.DomainesEtudes
-            .AnyAsync(d =>
-                d.Code == code &&
-                d.IdCollege == idCollege &&
-                d.IdDomaine != id);
-
-        if (codeExiste)
-        {
-            return BadRequest(new { message = $"Un autre domaine d'étude avec le code '{code}' existe déjà pour ce collège." });
-        }
-
-        existingDomaineEtude.IdCollege = idCollege;
-        existingDomaineEtude.Nom = nom;
-        existingDomaineEtude.Code = code;
-        existingDomaineEtude.AccepteStagiaires = dto.AccepteStagiaires;
-        existingDomaineEtude.Actif = dto.Actif;
+        lien.AccepteStagiaires = dto.AccepteStagiaires;
+        lien.Actif = dto.Actif;
 
         await _context.SaveChangesAsync();
 
@@ -283,49 +280,245 @@ public class DomainesEtudesController : ControllerBase
     }
 
     // DELETE /api/domaines-etudes/{id}
-    [HttpDelete("{id}")]
+    [HttpDelete("{id:int}")]
     [Authorize(Roles = "SuperAdministrateur,Administrateur")]
     public async Task<IActionResult> DeleteDomaineEtude(int id)
     {
-        var domaineQuery = _context.DomainesEtudes.AsQueryable();
-
         if (IsAdministrateur)
         {
             if (!_currentUserService.IdCollege.HasValue)
             {
                 return BadRequest(new
                 {
-                    message = "Votre compte administrateur n'est rattaché à aucun collège."
+                    message = "Votre compte administrateur n'est rattache a aucun college."
                 });
             }
 
             var idCollege = _currentUserService.IdCollege.Value;
 
-            domaineQuery = domaineQuery.Where(
-                d => d.IdCollege == idCollege);
+            var lien = await _context.CollegeDomaines
+                .FirstOrDefaultAsync(cd =>
+                    cd.IdDomaine == id &&
+                    cd.IdCollege == idCollege);
+
+            if (lien == null)
+            {
+                return NotFound(new
+                {
+                    message = "Domaine introuvable ou non accessible pour votre college."
+                });
+            }
+
+            // L'admin desactive seulement le domaine pour son college.
+            lien.Actif = false;
+            await _context.SaveChangesAsync();
+
+            return NoContent();
         }
 
-        var domaineEtude = await domaineQuery
+        var domaine = await _context.DomainesEtudes
             .FirstOrDefaultAsync(d => d.IdDomaine == id);
 
-        if (domaineEtude == null)
+        if (domaine == null)
         {
             return NotFound(new
             {
-                message = $"Domaine d'étude avec ID {id} non trouvé ou non accessible."
+                message = $"Domaine d'etude avec ID {id} non trouve."
             });
         }
 
-        domaineEtude.Actif = false;
+        // Le superadmin desactive le domaine global.
+        domaine.Actif = false;
         await _context.SaveChangesAsync();
 
         return NoContent();
     }
-}
 
-// Ce controller gerera les routes liées aux domaines d'études, comme :
-// - GET /api/domaines-etudes : Récupérer la liste de tous les domaines d'études
-// - GET /api/domaines-etudes/{id} : Récupérer les détails d'un domaine d'étude spécifique
-// - POST /api/domaines-etudes : Créer un nouveau domaine d'étude
-// - PUT /api/domaines-etudes/{id} : Mettre à jour les informations d'un domaine d'étude existant
-// - DELETE /api/domaines-etudes/{id} : Désactiver un domaine d'étude
+    private async Task<ActionResult<DomaineEtudeResponseDto>> CreateOuLierDomainePourAdministrateur(
+        DomaineEtudeCreateDto dto,
+        DomaineEtude? domaineExistant,
+        string nom,
+        string code)
+    {
+        if (!_currentUserService.IdCollege.HasValue)
+        {
+            return BadRequest(new
+            {
+                message = "Votre compte administrateur n'est rattache a aucun college."
+            });
+        }
+
+        var idCollege = _currentUserService.IdCollege.Value;
+
+        var collegeExiste = await _context.Colleges
+            .AnyAsync(c => c.IdCollege == idCollege && c.Actif);
+
+        if (!collegeExiste)
+        {
+            return BadRequest(new
+            {
+                message = "Votre college est introuvable ou inactif."
+            });
+        }
+
+        var domaine = domaineExistant;
+
+        if (domaine == null)
+        {
+            domaine = new DomaineEtude
+            {
+                Nom = nom,
+                Code = code,
+                Actif = dto.Actif
+            };
+
+            _context.DomainesEtudes.Add(domaine);
+            await _context.SaveChangesAsync();
+        }
+
+        var lienExiste = await _context.CollegeDomaines
+            .AnyAsync(cd =>
+                cd.IdDomaine == domaine.IdDomaine &&
+                cd.IdCollege == idCollege);
+
+        if (lienExiste)
+        {
+            return BadRequest(new
+            {
+                message = "Ce domaine est deja lie a votre college."
+            });
+        }
+
+        _context.CollegeDomaines.Add(new CollegeDomaine
+        {
+            IdDomaine = domaine.IdDomaine,
+            IdCollege = idCollege,
+            AccepteStagiaires = dto.Colleges.FirstOrDefault()?.AccepteStagiaires ?? true,
+            Actif = true
+        });
+
+        await _context.SaveChangesAsync();
+
+        var response = await GetDomaineCompletAsync(domaine.IdDomaine);
+        return CreatedAtAction(nameof(GetDomaineEtudeById), new { id = domaine.IdDomaine }, response);
+    }
+
+    private async Task<ActionResult<DomaineEtudeResponseDto>> CreateOuLierDomainePourSuperAdministrateur(
+        DomaineEtudeCreateDto dto,
+        DomaineEtude? domaineExistant,
+        string nom,
+        string code)
+    {
+        var domaine = domaineExistant;
+
+        if (domaine != null && domaine.Nom != nom)
+        {
+            return BadRequest(new
+            {
+                message = "Un domaine avec ce code existe deja avec un autre nom."
+            });
+        }
+
+        if (domaine != null && domaine.Code != code)
+        {
+            return BadRequest(new
+            {
+                message = "Un domaine avec ce nom existe deja avec un autre code."
+            });
+        }
+
+        if (domaine == null)
+        {
+            domaine = new DomaineEtude
+            {
+                Nom = nom,
+                Code = code,
+                Actif = dto.Actif
+            };
+
+            _context.DomainesEtudes.Add(domaine);
+            await _context.SaveChangesAsync();
+        }
+
+        foreach (var collegeDto in dto.Colleges)
+        {
+            var collegeExiste = await _context.Colleges
+                .AnyAsync(c => c.IdCollege == collegeDto.IdCollege && c.Actif);
+
+            if (!collegeExiste)
+            {
+                return BadRequest(new
+                {
+                    message = $"College actif avec ID {collegeDto.IdCollege} introuvable."
+                });
+            }
+
+            var lienExiste = await _context.CollegeDomaines
+                .AnyAsync(cd =>
+                    cd.IdDomaine == domaine.IdDomaine &&
+                    cd.IdCollege == collegeDto.IdCollege);
+
+            if (lienExiste)
+            {
+                continue;
+            }
+
+            _context.CollegeDomaines.Add(new CollegeDomaine
+            {
+                IdDomaine = domaine.IdDomaine,
+                IdCollege = collegeDto.IdCollege,
+                AccepteStagiaires = collegeDto.AccepteStagiaires,
+                Actif = collegeDto.Actif
+            });
+        }
+
+        await _context.SaveChangesAsync();
+
+        var response = await GetDomaineCompletAsync(domaine.IdDomaine);
+        return CreatedAtAction(nameof(GetDomaineEtudeById), new { id = domaine.IdDomaine }, response);
+    }
+
+    private async Task<DomaineEtudeResponseDto?> GetDomaineCompletAsync(int idDomaine)
+    {
+        var domaine = await _context.DomainesEtudes
+            .AsNoTracking()
+            .Include(d => d.CollegeDomaines)
+                .ThenInclude(cd => cd.College)
+            .FirstOrDefaultAsync(d => d.IdDomaine == idDomaine);
+
+        return domaine == null ? null : MapDomaineResponse(domaine);
+    }
+
+    private static DomaineEtudeResponseDto MapDomaineResponse(DomaineEtude domaine)
+    {
+        var premierLienActif = domaine.CollegeDomaines
+            .Where(cd => cd.College != null)
+            .OrderBy(cd => cd.College!.Nom)
+            .FirstOrDefault();
+
+        return new DomaineEtudeResponseDto
+        {
+            IdDomaine = domaine.IdDomaine,
+            Nom = domaine.Nom,
+            Code = domaine.Code,
+            Actif = domaine.Actif,
+
+            Colleges = domaine.CollegeDomaines
+                .Where(cd => cd.College != null)
+                .OrderBy(cd => cd.College!.Nom)
+                .Select(cd => new CollegeDomaineResponseDto
+                {
+                    IdCollege = cd.IdCollege,
+                    NomCollege = cd.College!.Nom,
+                    AccepteStagiaires = cd.AccepteStagiaires,
+                    Actif = cd.Actif
+                })
+                .ToList(),
+
+            // Champs de compatibilite temporaire pour les anciennes pages.
+            IdCollege = premierLienActif?.IdCollege,
+            NomCollege = premierLienActif?.College?.Nom,
+            AccepteStagiaires = premierLienActif?.AccepteStagiaires
+        };
+    }
+}

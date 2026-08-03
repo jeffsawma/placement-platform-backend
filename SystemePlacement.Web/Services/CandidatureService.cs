@@ -3,7 +3,6 @@ using SystemePlacement.Web.Data;
 using SystemePlacement.Web.DTOs.Candidatures;
 using SystemePlacement.Web.Enums;
 using SystemePlacement.Web.Models;
-using SystemePlacement.Web.Repositories;
 using SystemePlacement.Web.Repositories.Interfaces;
 using SystemePlacement.Web.Services.Interfaces;
 
@@ -40,8 +39,13 @@ public class CandidatureService : ICandidatureService
             return Array.Empty<CandidatureResponse>();
 
         var candidatures = await _repository.GetByOffreAsync(idOffre);
-        return candidatures.Select(Map).ToList();
+        var infosStages = await GetInfosStagesAsync(candidatures);
+
+        return candidatures
+            .Select(c => Map(c, GetInfoStage(c, infosStages)))
+            .ToList();
     }
+
     public async Task<CandidatureResponse?> GetAsync(int idCandidature)
     {
         var candidature = await _repository.GetByIdAsync(idCandidature);
@@ -52,8 +56,11 @@ public class CandidatureService : ICandidatureService
             return null;
         }
 
-        return Map(candidature);
+        var infosStages = await GetInfosStagesAsync(new[] { candidature });
+
+        return Map(candidature, GetInfoStage(candidature, infosStages));
     }
+
     public async Task<ValidationCandidatureResponse> ValiderPostulationAsync(int idOffre)
     {
         if (!_currentUser.IdUtilisateur.HasValue)
@@ -207,10 +214,10 @@ public class CandidatureService : ICandidatureService
 
         var libelleStatut = statut switch
         {
-            StatutCandidature.Vue => "a été consultée par l'employeur",
-            StatutCandidature.Acceptee => "a été acceptée",
-            StatutCandidature.Refusee => "a été refusée",
-            StatutCandidature.Retiree => "a été retirée",
+            StatutCandidature.Vue => "a ete consultee par l'employeur",
+            StatutCandidature.Acceptee => "a ete acceptee",
+            StatutCandidature.Refusee => "a ete refusee",
+            StatutCandidature.Retiree => "a ete retiree",
             _ => $"est maintenant : {statut}"
         };
 
@@ -218,7 +225,7 @@ public class CandidatureService : ICandidatureService
 
         await _notification.NotifierEtudiantAsync(
             candidature.IdEtudiant,
-            $"Votre candidature pour « {titreOffre} » {libelleStatut}.",
+            $"Votre candidature pour \"{titreOffre}\" {libelleStatut}.",
             "/mes-candidatures");
 
         if (statut == StatutCandidature.Acceptee
@@ -231,7 +238,7 @@ public class CandidatureService : ICandidatureService
 
             await _notification.NotifierResponsablesCollegeAsync(
                 idCollegeEtudiant,
-                $"{nomEtudiant} a été accepté(e) {typePlacement} chez {nomEmployeur} pour « {titreOffre} ».",
+                $"{nomEtudiant} a ete accepte(e) {typePlacement} chez {nomEmployeur} pour \"{titreOffre}\".",
                 "/responsable/suivi-etudiants");
         }
 
@@ -295,7 +302,7 @@ public class CandidatureService : ICandidatureService
 
             await _notification.NotifierResponsablesCollegeAsync(
                 idCollegeEtudiant,
-                $"{nomEtudiant} a confirmé son embauche chez {nomEmployeur} pour « {candidature.Offre.Titre} ».",
+                $"{nomEtudiant} a confirme son embauche chez {nomEmployeur} pour \"{candidature.Offre.Titre}\".",
                 "/responsable/suivi-etudiants");
         }
 
@@ -319,7 +326,11 @@ public class CandidatureService : ICandidatureService
         }
 
         var candidatures = await _repository.GetByOffreAsync(idOffre);
-        return candidatures.Select(MapResumee).ToList();
+        var infosStages = await GetInfosStagesAsync(candidatures);
+
+        return candidatures
+            .Select(c => MapResumee(c, GetInfoStage(c, infosStages)))
+            .ToList();
     }
 
     public async Task<IReadOnlyList<CandidatureResumeeResponse>> GetCandidaturesParDomaineAsync(int idDomaine)
@@ -339,7 +350,11 @@ public class CandidatureService : ICandidatureService
                 .ToList();
         }
 
-        return candidatures.Select(MapResumee).ToList();
+        var infosStages = await GetInfosStagesAsync(candidatures);
+
+        return candidatures
+            .Select(c => MapResumee(c, GetInfoStage(c, infosStages)))
+            .ToList();
     }
 
     public async Task<IReadOnlyList<CandidatureResumeeResponse>> GetMesCandidaturesAsync()
@@ -354,7 +369,11 @@ public class CandidatureService : ICandidatureService
             return Array.Empty<CandidatureResumeeResponse>();
 
         var candidatures = await _repository.GetByEtudiantAsync(idEtudiant.Value);
-        return candidatures.Select(MapResumee).ToList();
+        var infosStages = await GetInfosStagesAsync(candidatures);
+
+        return candidatures
+            .Select(c => MapResumee(c, GetInfoStage(c, infosStages)))
+            .ToList();
     }
 
     public async Task<bool> MettreAJourAsync(int idCandidature, MettreAJourCandidatureRequest request)
@@ -406,7 +425,7 @@ public class CandidatureService : ICandidatureService
         {
             await _notification.NotifierEmployeurAsync(
                 candidature.Offre.IdEmployeur,
-                $"Un candidat a retiré sa candidature pour « {candidature.Offre.Titre} ».",
+                $"Un candidat a retire sa candidature pour \"{candidature.Offre.Titre}\".",
                 "/employeur/candidatures");
         }
 
@@ -423,8 +442,11 @@ public class CandidatureService : ICandidatureService
             return null;
         }
 
-        return MapDetail(candidature);
+        var infosStages = await GetInfosStagesAsync(new[] { candidature });
+
+        return MapDetail(candidature, GetInfoStage(candidature, infosStages));
     }
+
     public async Task<bool> ChangerStatutAsync(int idCandidature, StatutCandidature statut)
     {
         // Centralise la logique pour ne pas oublier la creation automatique du stage.
@@ -486,6 +508,88 @@ public class CandidatureService : ICandidatureService
             _currentUser.IdUtilisateur.Value);
     }
 
+    private async Task<Dictionary<string, InfoStageCandidature>> GetInfosStagesAsync(
+        IEnumerable<Candidature> candidatures)
+    {
+        var listeCandidatures = candidatures.ToList();
+
+        var idsEtudiants = listeCandidatures
+            .Select(c => c.IdEtudiant)
+            .Distinct()
+            .ToList();
+
+        var idsOffres = listeCandidatures
+            .Select(c => c.IdOffre)
+            .Distinct()
+            .ToList();
+
+        if (idsEtudiants.Count == 0 || idsOffres.Count == 0)
+            return new Dictionary<string, InfoStageCandidature>();
+
+        var stages = await _context.Stages
+            .AsNoTracking()
+            .Include(s => s.Confirmations)
+            .Where(s =>
+                idsEtudiants.Contains(s.IdEtudiant) &&
+                s.IdOffre.HasValue &&
+                idsOffres.Contains(s.IdOffre.Value))
+            .ToListAsync();
+
+        return stages
+            .GroupBy(s => CleStage(s.IdEtudiant, s.IdOffre!.Value))
+            .ToDictionary(
+                g => g.Key,
+                g =>
+                {
+                    var stage = g
+                        .OrderByDescending(s => s.DateCreation)
+                        .First();
+
+                    return CreerInfoStage(stage);
+                });
+    }
+
+    private static InfoStageCandidature? GetInfoStage(
+        Candidature candidature,
+        Dictionary<string, InfoStageCandidature> infosStages)
+    {
+        var cle = CleStage(candidature.IdEtudiant, candidature.IdOffre);
+
+        return infosStages.TryGetValue(cle, out var infoStage)
+            ? infoStage
+            : null;
+    }
+
+    private static string CleStage(int idEtudiant, int idOffre)
+    {
+        return $"{idEtudiant}-{idOffre}";
+    }
+
+    private static InfoStageCandidature CreerInfoStage(Stage stage)
+    {
+        var confirmationsAcceptees = stage.Confirmations
+            .Count(c => c.Decision == "Accepte");
+
+        var stageConfirme =
+            stage.Statut == "Confirme" ||
+            confirmationsAcceptees >= 2;
+
+        var dateConfirmation = stage.DateConfirmation ??
+            stage.Confirmations
+                .Where(c => c.Decision == "Accepte")
+                .OrderByDescending(c => c.DateDecision)
+                .Select(c => (DateTime?)c.DateDecision)
+                .FirstOrDefault();
+
+        return new InfoStageCandidature
+        {
+            StageConfirme = stageConfirme,
+            NombreConfirmationsStage = confirmationsAcceptees,
+            StatutStage = stage.Statut,
+            DateConfirmationStage = dateConfirmation
+        };
+    }
+
     private CandidatureDocument? CreerDocument(string? url, TypeDocument type)
     {
         if (string.IsNullOrWhiteSpace(url))
@@ -520,74 +624,100 @@ public class CandidatureService : ICandidatureService
         _ => "application/octet-stream"
     };
 
-    private static CandidatureResponse Map(Candidature c) => new()
-    {
-        IdCandidature = c.IdCandidature,
-        IdOffre = c.IdOffre,
-        IdEtudiant = c.IdEtudiant,
-        DateCandidature = c.DateCandidature,
-        Statut = c.Statut,
-        CvUrl = c.CvUrl,
-        LettreMotivation = c.LettreMotivation,
-        MessageMotivation = c.MessageMotivation,
-        MessageReponseEmployeur = c.MessageReponseEmployeur,
-        DateReponseEmployeur = c.DateReponseEmployeur,
-        EmploiConfirme = c.EmploiConfirme,
-        MessageConfirmationEmploi = c.MessageConfirmationEmploi,
-        DateConfirmationEmploi = c.DateConfirmationEmploi
-    };
-
-    private static CandidatureResumeeResponse MapResumee(Candidature c) => new()
-    {
-        IdCandidature = c.IdCandidature,
-        IdOffre = c.IdOffre,
-        IdEtudiant = c.IdEtudiant,
-        TitreOffre = c.Offre?.Titre ?? string.Empty,
-        NomEtudiant = c.Etudiant?.Utilisateur?.Nom ?? string.Empty,
-        PrenomEtudiant = c.Etudiant?.Utilisateur?.Prenom ?? string.Empty,
-        CourrielEtudiant = c.Etudiant?.Utilisateur?.Courriel,
-        Statut = c.Statut,
-        DateCandidature = c.DateCandidature,
-        MessageMotivation = c.MessageMotivation ?? c.LettreMotivation,
-        MessageReponseEmployeur = c.MessageReponseEmployeur,
-        DateReponseEmployeur = c.DateReponseEmployeur,
-        EmploiConfirme = c.EmploiConfirme,
-        MessageConfirmationEmploi = c.MessageConfirmationEmploi,
-        DateConfirmationEmploi = c.DateConfirmationEmploi,
-        ACV = c.Documents.Any(d => d.TypeDocument == TypeDocument.CV) ||
-              !string.IsNullOrWhiteSpace(c.CvUrl),
-        ALettreMotivation = c.Documents.Any(d => d.TypeDocument == TypeDocument.LettreMotivation) ||
-                             !string.IsNullOrWhiteSpace(c.LettreMotivation)
-    };
-
-    private static CandidatureDetailResponse MapDetail(Candidature c) => new()
-    {
-        IdCandidature = c.IdCandidature,
-        IdOffre = c.IdOffre,
-        IdEtudiant = c.IdEtudiant,
-        TitreOffre = c.Offre?.Titre ?? string.Empty,
-        NomEtudiant = c.Etudiant?.Utilisateur?.Nom ?? string.Empty,
-        PrenomEtudiant = c.Etudiant?.Utilisateur?.Prenom ?? string.Empty,
-        CourrielEtudiant = c.Etudiant?.Utilisateur?.Courriel,
-        Statut = c.Statut,
-        DateCandidature = c.DateCandidature,
-        MessageReponseEmployeur = c.MessageReponseEmployeur,
-        DateReponseEmployeur = c.DateReponseEmployeur,
-        EmploiConfirme = c.EmploiConfirme,
-        MessageConfirmationEmploi = c.MessageConfirmationEmploi,
-        DateConfirmationEmploi = c.DateConfirmationEmploi,
-        ACV = c.Documents.Any(d => d.TypeDocument == TypeDocument.CV) ||
-              !string.IsNullOrWhiteSpace(c.CvUrl),
-        ALettreMotivation = c.Documents.Any(d => d.TypeDocument == TypeDocument.LettreMotivation) ||
-                             !string.IsNullOrWhiteSpace(c.LettreMotivation),
-        MessageMotivation = c.MessageMotivation ?? c.LettreMotivation,
-        Documents = c.Documents.Select(d => new DocumentResponse
+    private static CandidatureResponse Map(
+        Candidature c,
+        InfoStageCandidature? infoStage = null) => new()
         {
-            IdDocument = d.IdDocument,
-            TypeDocument = d.TypeDocument,
-            NomFichier = d.NomFichier,
-            TailleFichier = d.TailleFichier,
-            DateUpload = d.DateUpload
-        }).ToList()
-    };
+            IdCandidature = c.IdCandidature,
+            IdOffre = c.IdOffre,
+            IdEtudiant = c.IdEtudiant,
+            DateCandidature = c.DateCandidature,
+            Statut = c.Statut,
+            CvUrl = c.CvUrl,
+            LettreMotivation = c.LettreMotivation,
+            MessageMotivation = c.MessageMotivation,
+            MessageReponseEmployeur = c.MessageReponseEmployeur,
+            DateReponseEmployeur = c.DateReponseEmployeur,
+            EmploiConfirme = c.EmploiConfirme,
+            MessageConfirmationEmploi = c.MessageConfirmationEmploi,
+            DateConfirmationEmploi = c.DateConfirmationEmploi,
+            StageConfirme = infoStage?.StageConfirme ?? false,
+            NombreConfirmationsStage = infoStage?.NombreConfirmationsStage ?? 0,
+            StatutStage = infoStage?.StatutStage,
+            DateConfirmationStage = infoStage?.DateConfirmationStage
+        };
+
+    private static CandidatureResumeeResponse MapResumee(
+        Candidature c,
+        InfoStageCandidature? infoStage = null) => new()
+        {
+            IdCandidature = c.IdCandidature,
+            IdOffre = c.IdOffre,
+            IdEtudiant = c.IdEtudiant,
+            TitreOffre = c.Offre?.Titre ?? string.Empty,
+            NomEtudiant = c.Etudiant?.Utilisateur?.Nom ?? string.Empty,
+            PrenomEtudiant = c.Etudiant?.Utilisateur?.Prenom ?? string.Empty,
+            CourrielEtudiant = c.Etudiant?.Utilisateur?.Courriel,
+            Statut = c.Statut,
+            DateCandidature = c.DateCandidature,
+            MessageMotivation = c.MessageMotivation ?? c.LettreMotivation,
+            MessageReponseEmployeur = c.MessageReponseEmployeur,
+            DateReponseEmployeur = c.DateReponseEmployeur,
+            EmploiConfirme = c.EmploiConfirme,
+            MessageConfirmationEmploi = c.MessageConfirmationEmploi,
+            DateConfirmationEmploi = c.DateConfirmationEmploi,
+            StageConfirme = infoStage?.StageConfirme ?? false,
+            NombreConfirmationsStage = infoStage?.NombreConfirmationsStage ?? 0,
+            StatutStage = infoStage?.StatutStage,
+            DateConfirmationStage = infoStage?.DateConfirmationStage,
+            ACV = c.Documents.Any(d => d.TypeDocument == TypeDocument.CV) ||
+              !string.IsNullOrWhiteSpace(c.CvUrl),
+            ALettreMotivation = c.Documents.Any(d => d.TypeDocument == TypeDocument.LettreMotivation) ||
+                             !string.IsNullOrWhiteSpace(c.LettreMotivation)
+        };
+
+    private static CandidatureDetailResponse MapDetail(
+        Candidature c,
+        InfoStageCandidature? infoStage = null) => new()
+        {
+            IdCandidature = c.IdCandidature,
+            IdOffre = c.IdOffre,
+            IdEtudiant = c.IdEtudiant,
+            TitreOffre = c.Offre?.Titre ?? string.Empty,
+            NomEtudiant = c.Etudiant?.Utilisateur?.Nom ?? string.Empty,
+            PrenomEtudiant = c.Etudiant?.Utilisateur?.Prenom ?? string.Empty,
+            CourrielEtudiant = c.Etudiant?.Utilisateur?.Courriel,
+            Statut = c.Statut,
+            DateCandidature = c.DateCandidature,
+            MessageReponseEmployeur = c.MessageReponseEmployeur,
+            DateReponseEmployeur = c.DateReponseEmployeur,
+            EmploiConfirme = c.EmploiConfirme,
+            MessageConfirmationEmploi = c.MessageConfirmationEmploi,
+            DateConfirmationEmploi = c.DateConfirmationEmploi,
+            StageConfirme = infoStage?.StageConfirme ?? false,
+            NombreConfirmationsStage = infoStage?.NombreConfirmationsStage ?? 0,
+            StatutStage = infoStage?.StatutStage,
+            DateConfirmationStage = infoStage?.DateConfirmationStage,
+            ACV = c.Documents.Any(d => d.TypeDocument == TypeDocument.CV) ||
+              !string.IsNullOrWhiteSpace(c.CvUrl),
+            ALettreMotivation = c.Documents.Any(d => d.TypeDocument == TypeDocument.LettreMotivation) ||
+                             !string.IsNullOrWhiteSpace(c.LettreMotivation),
+            MessageMotivation = c.MessageMotivation ?? c.LettreMotivation,
+            Documents = c.Documents.Select(d => new DocumentResponse
+            {
+                IdDocument = d.IdDocument,
+                TypeDocument = d.TypeDocument,
+                NomFichier = d.NomFichier,
+                TailleFichier = d.TailleFichier,
+                DateUpload = d.DateUpload
+            }).ToList()
+        };
+
+    private class InfoStageCandidature
+    {
+        public bool StageConfirme { get; set; }
+        public int NombreConfirmationsStage { get; set; }
+        public string? StatutStage { get; set; }
+        public DateTime? DateConfirmationStage { get; set; }
+    }
 }

@@ -10,10 +10,14 @@ public class OffreDomaineConfiguration : IEntityTypeConfiguration<OffreDomaine>
     {
         builder.ToTable("offre_domaines");
 
+        // Table de liaison entre Offre et DomaineEtude.
         builder.HasKey(od => new { od.IdOffre, od.IdDomaine });
 
-        builder.Property(od => od.IdOffre).HasColumnName("id_offre");
-        builder.Property(od => od.IdDomaine).HasColumnName("id_domaine");
+        builder.Property(od => od.IdOffre)
+            .HasColumnName("id_offre");
+
+        builder.Property(od => od.IdDomaine)
+            .HasColumnName("id_domaine");
 
         builder.HasOne(od => od.Offre)
             .WithMany(o => o.OffreDomaines)
@@ -21,7 +25,7 @@ public class OffreDomaineConfiguration : IEntityTypeConfiguration<OffreDomaine>
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasOne(od => od.DomaineEtude)
-            .WithMany()
+            .WithMany(d => d.OffreDomaines)
             .HasForeignKey(od => od.IdDomaine)
             .OnDelete(DeleteBehavior.Restrict);
     }

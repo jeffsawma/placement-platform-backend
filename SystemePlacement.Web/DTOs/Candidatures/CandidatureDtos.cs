@@ -38,14 +38,20 @@ public class CandidatureResponse
     public string? MessageMotivation { get; set; }
     public string? MessageReponseEmployeur { get; set; }
     public DateTime? DateReponseEmployeur { get; set; }
+
+    // Confirmation d'emploi : utilisé pour les offres d'emploi.
     public bool EmploiConfirme { get; set; }
     public string? MessageConfirmationEmploi { get; set; }
     public DateTime? DateConfirmationEmploi { get; set; }
+
+    // Confirmation de stage : calculé à partir de la table stages + confirmations_stage.
+    public bool StageConfirme { get; set; }
+    public int NombreConfirmationsStage { get; set; }
+    public string? StatutStage { get; set; }
+    public DateTime? DateConfirmationStage { get; set; }
 }
 
-// Ajout l'id de l'étudiant 'IdEtudiant'
 public class CandidatureResumeeResponse
-
 {
     public int IdCandidature { get; set; }
     public int IdOffre { get; set; }
@@ -61,9 +67,17 @@ public class CandidatureResumeeResponse
     public DateTime? DateReponseEmployeur { get; set; }
     public bool ACV { get; set; }
     public bool ALettreMotivation { get; set; }
+
+    // Confirmation d'emploi : utilisé pour les offres d'emploi.
     public bool EmploiConfirme { get; set; }
     public string? MessageConfirmationEmploi { get; set; }
     public DateTime? DateConfirmationEmploi { get; set; }
+
+    // Confirmation de stage : utilisé pour les offres de stage.
+    public bool StageConfirme { get; set; }
+    public int NombreConfirmationsStage { get; set; }
+    public string? StatutStage { get; set; }
+    public DateTime? DateConfirmationStage { get; set; }
 }
 
 public class CandidatureDetailResponse : CandidatureResumeeResponse

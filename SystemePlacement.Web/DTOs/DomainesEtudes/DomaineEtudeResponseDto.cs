@@ -1,24 +1,17 @@
-﻿namespace SystemePlacement.Web.DTOs.DomainesEtudes
-{
-    public class DomaineEtudeResponseDto
-    {
-        public int IdDomaine { get; set; }
-        public int IdCollege { get; set; }
-        public string NomCollege { get; set; } = string.Empty; // Pour le frontend, on veut aussi le nom du collège associé
-        public string Nom { get; set; } = string.Empty;
-        public string Code { get; set; } = string.Empty;
-        public bool AccepteStagiaires { get; set; }
-        public bool Actif { get; set; }
-    }
-}
+﻿namespace SystemePlacement.Web.DTOs.DomainesEtudes;
 
-// Un example d'affichage pourrait être:
-// {
-//     "idDomaine": 1,
-//     "idCollege": 2,
-//     "nomCollege": "Cégep Gérald Godin",
-//     "nom": "Programmation en technologies Web",
-//     "code": "WEB101",
-//     "accepteStagiaires": true,
-//     "actif": true
-// }
+public class DomaineEtudeResponseDto
+{
+    public int IdDomaine { get; set; }
+    public string Nom { get; set; } = string.Empty;
+    public string Code { get; set; } = string.Empty;
+    public bool Actif { get; set; }
+
+    // Nouvelle logique propre : plusieurs cegeps pour un domaine.
+    public List<CollegeDomaineResponseDto> Colleges { get; set; } = new();
+
+    // Champs conserves pour eviter de briser trop vite les anciennes pages front.
+    public int? IdCollege { get; set; }
+    public string? NomCollege { get; set; }
+    public bool? AccepteStagiaires { get; set; }
+}

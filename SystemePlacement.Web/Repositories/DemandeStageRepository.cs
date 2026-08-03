@@ -20,6 +20,23 @@ public class DemandeStageRepository : IDemandeStageRepository
             .Select(e => (int?)e.IdEtudiant)
             .FirstOrDefaultAsync();
 
+    public Task<int?> GetIdCollegeEtudiantAsync(int idEtudiant) =>
+        _context.Etudiants
+            .Where(e => e.IdEtudiant == idEtudiant)
+            .Select(e => e.Utilisateur != null
+                ? e.Utilisateur.IdCollege
+                : null)
+            .FirstOrDefaultAsync();
+
+    public Task<bool> DomaineExistePourCollegeAsync(int idDomaine, int idCollege) =>
+        _context.CollegeDomaines
+            .AnyAsync(cd =>
+                cd.IdDomaine == idDomaine &&
+                cd.IdCollege == idCollege &&
+                cd.Actif &&
+                cd.DomaineEtude != null &&
+                cd.DomaineEtude.Actif);
+
     public async Task AddAsync(DemandeStage demande) =>
         await _context.DemandesStage.AddAsync(demande);
 
@@ -27,9 +44,9 @@ public class DemandeStageRepository : IDemandeStageRepository
         _context.DemandesStage
             .AsNoTracking()
             .Include(d => d.DomaineEtude)
-                .ThenInclude(dom => dom!.College)
             .Include(d => d.Etudiant)
                 .ThenInclude(e => e!.Utilisateur)
+                    .ThenInclude(u => u!.College)
             .FirstOrDefaultAsync(d =>
                 d.IdDemandeStage == idDemandeStage);
 
@@ -37,9 +54,9 @@ public class DemandeStageRepository : IDemandeStageRepository
         _context.DemandesStage
             .AsNoTracking()
             .Include(d => d.DomaineEtude)
-                .ThenInclude(dom => dom!.College)
             .Include(d => d.Etudiant)
                 .ThenInclude(e => e!.Utilisateur)
+                    .ThenInclude(u => u!.College)
             .Where(d => d.IdEtudiant == idEtudiant)
             .OrderByDescending(d => d.DateCreation)
             .ToListAsync();
@@ -48,9 +65,9 @@ public class DemandeStageRepository : IDemandeStageRepository
         _context.DemandesStage
             .AsNoTracking()
             .Include(d => d.DomaineEtude)
-                .ThenInclude(dom => dom!.College)
             .Include(d => d.Etudiant)
                 .ThenInclude(e => e!.Utilisateur)
+                    .ThenInclude(u => u!.College)
             .Where(d => d.IdDomaine == idDomaine)
             .OrderByDescending(d => d.DateCreation)
             .ToListAsync();
@@ -59,12 +76,6 @@ public class DemandeStageRepository : IDemandeStageRepository
         _context.DomainesEtudes
             .Where(d => d.IdDomaine == idDomaine)
             .Select(d => d.Nom)
-            .FirstOrDefaultAsync();
-
-    public Task<int?> GetIdCollegeByDomaineAsync(int idDomaine) =>
-        _context.DomainesEtudes
-            .Where(d => d.IdDomaine == idDomaine)
-            .Select(d => (int?)d.IdCollege)
             .FirstOrDefaultAsync();
 
     public Task<string?> GetNomEtudiantAsync(int idEtudiant) =>
