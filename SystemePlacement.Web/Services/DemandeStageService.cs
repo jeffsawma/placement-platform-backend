@@ -61,7 +61,10 @@ public class DemandeStageService : IDemandeStageService
                 $"{nomEtudiant} recherche un stage en « {nomDomaine} », un domaine de vos offres.",
                 "/employeur/demandes-stage");
 
-        return Map(demande);
+        var demandeComplete = await _repository.GetByIdAsync(
+            demande.IdDemandeStage);
+
+        return Map(demandeComplete ?? demande);
     }
 
     public async Task<IReadOnlyList<DemandeStageResponse>> GetMesDemandesAsync()
@@ -79,6 +82,19 @@ public class DemandeStageService : IDemandeStageService
 
     public async Task<IReadOnlyList<DemandeStageResponse>> GetDemandesParDomaineAsync(int idDomaine)
     {
+        if (_currentUser.Role == "Employeur")
+        {
+            if (!_currentUser.IdUtilisateur.HasValue)
+                return Array.Empty<DemandeStageResponse>();
+
+            var hasAccess = await _repository.EmployeurHasOfferInDomainAsync(
+                _currentUser.IdUtilisateur.Value,
+                idDomaine);
+
+            if (!hasAccess)
+                return Array.Empty<DemandeStageResponse>();
+        }
+
         var demandes = await _repository.GetByDomaineAsync(idDomaine);
         return demandes.Select(Map).ToList();
     }
