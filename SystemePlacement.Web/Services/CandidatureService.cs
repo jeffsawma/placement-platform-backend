@@ -95,6 +95,14 @@ public class CandidatureService : ICandidatureService
             };
         }
 
+        if (offre.Statut != StatutOffre.Active)
+        {
+            return new ValidationCandidatureResponse
+            {
+                PeutPostuler = false,
+                Message = "Cette offre n'est plus active."
+            };
+        }
         if (await _repository.ExistsAsync(idOffre, idEtudiant.Value))
         {
             return new ValidationCandidatureResponse
