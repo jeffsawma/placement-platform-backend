@@ -362,6 +362,21 @@ public class DomainesEtudesController : ControllerBase
         }
 
         var domaine = domaineExistant;
+        if (domaine != null && domaine.Nom != nom)
+        {
+            return BadRequest(new
+            {
+                message = "Un domaine avec ce code existe deja avec un autre nom."
+            });
+        }
+
+        if (domaine != null && domaine.Code != code)
+        {
+            return BadRequest(new
+            {
+                message = "Un domaine avec ce nom existe deja avec un autre code."
+            });
+        }
 
         if (domaine == null)
         {
