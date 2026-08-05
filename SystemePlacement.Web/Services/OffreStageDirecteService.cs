@@ -98,7 +98,7 @@ public class OffreStageDirecteService : IOffreStageDirecteService
             }
         }
 
-        // Empeche de faire deux offres directes actives pour la mÃªme candidature.
+        // Empêche de faire deux offres directes actives pour la même candidature.
         // Si IdCandidature est null, l'offre directe reste possible.
         if (request.IdCandidature.HasValue &&
             await _repository.ExistsActiveForCandidatureAsync(request.IdCandidature.Value))
@@ -136,7 +136,7 @@ public class OffreStageDirecteService : IOffreStageDirecteService
 
         await _notification.NotifierEtudiantAsync(
             offre.IdEtudiant,
-            "Vous avez recu une offre de stage directe d'un employeur.",
+            "Vous avez reçu une offre de stage directe d'un employeur.",
             "/offres-stage-recues");
 
         var saved = await _repository.GetByIdAsync(offre.IdOffreDirecte);
@@ -146,7 +146,7 @@ public class OffreStageDirecteService : IOffreStageDirecteService
             var nomEtudiant = $"{saved.Etudiant.Utilisateur.Prenom} {saved.Etudiant.Utilisateur.Nom}";
             await _notification.NotifierResponsablesCollegeAsync(
                 idCollegeEtudiant,
-                $"Une offre de stage directe a été proposée à  {nomEtudiant}.",
+                $"Une offre de stage directe a été proposée à {nomEtudiant}.",
                 "/responsable/suivi-etudiants");
         }
 
@@ -287,7 +287,7 @@ public class OffreStageDirecteService : IOffreStageDirecteService
         IdCandidature = offre.IdCandidature,
         IdDemandeStage = offre.IdDemandeStage,
 
-        // Infos de l'offre de stage liÃ©e.
+        // Infos de l'offre de stage liée.
         TitreOffreStage = offre.OffreStage?.Titre,
         DescriptionOffreStage = offre.OffreStage?.Description,
         VilleOffreStage = offre.OffreStage?.Ville,
