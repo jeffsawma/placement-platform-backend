@@ -80,7 +80,7 @@ public class CandidatureService : ICandidatureService
             return new ValidationCandidatureResponse
             {
                 PeutPostuler = false,
-                Message = "Votre profil etudiant est introuvable."
+                Message = "Votre profil étudiant est introuvable."
             };
         }
 
@@ -91,7 +91,7 @@ public class CandidatureService : ICandidatureService
             return new ValidationCandidatureResponse
             {
                 PeutPostuler = false,
-                Message = "L'offre selectionnee est introuvable."
+                Message = "L'offre sélectionnée est introuvable."
             };
         }
 
@@ -108,7 +108,7 @@ public class CandidatureService : ICandidatureService
             return new ValidationCandidatureResponse
             {
                 PeutPostuler = false,
-                Message = "Vous avez deja postule a cette offre."
+                Message = "Vous avez déjà postulé à cette offre."
             };
         }
 
@@ -162,7 +162,7 @@ public class CandidatureService : ICandidatureService
         {
             await _notification.NotifierEmployeurAsync(
                 offre.IdEmployeur,
-                $"Nouvelle candidature recue pour \"{offre.Titre}\".",
+                $"Nouvelle candidature reçue pour \"{offre.Titre}\".",
                 "/employeur/candidatures");
         }
 
@@ -192,7 +192,7 @@ public class CandidatureService : ICandidatureService
         candidature.MessageReponseEmployeur = message;
         candidature.DateReponseEmployeur = DateTime.UtcNow;
 
-        // Si une candidature de stage est acceptee, on cree automatiquement
+        // Si une candidature de stage est acceptée, on crée automatiquement
         // un stage en attente de confirmation par l'employeur et le responsable.
         if (statut == StatutCandidature.Acceptee && candidature.Offre is OffreStage offreStage)
         {
@@ -222,10 +222,10 @@ public class CandidatureService : ICandidatureService
 
         var libelleStatut = statut switch
         {
-            StatutCandidature.Vue => "a ete consultee par l'employeur",
-            StatutCandidature.Acceptee => "a ete acceptee",
-            StatutCandidature.Refusee => "a ete refusee",
-            StatutCandidature.Retiree => "a ete retiree",
+            StatutCandidature.Vue => "a été consultée par l'employeur",
+            StatutCandidature.Acceptee => "a été acceptée",
+            StatutCandidature.Refusee => "a été refusée",
+            StatutCandidature.Retiree => "a été retirée",
             _ => $"est maintenant : {statut}"
         };
 
@@ -246,7 +246,7 @@ public class CandidatureService : ICandidatureService
 
             await _notification.NotifierResponsablesCollegeAsync(
                 idCollegeEtudiant,
-                $"{nomEtudiant} a ete accepte(e) {typePlacement} chez {nomEmployeur} pour \"{titreOffre}\".",
+                $"{nomEtudiant} a été accepté(e) {typePlacement} chez {nomEmployeur} pour \"{titreOffre}\".",
                 "/responsable/suivi-etudiants");
         }
 
@@ -290,7 +290,7 @@ public class CandidatureService : ICandidatureService
 
         candidature.EmploiConfirme = true;
         candidature.MessageConfirmationEmploi = string.IsNullOrWhiteSpace(message)
-            ? "Emploi confirme par l'employeur."
+            ? "Emploi confirmé par l'employeur."
             : message.Trim();
 
         candidature.DateConfirmationEmploi = DateTime.UtcNow;
@@ -300,7 +300,7 @@ public class CandidatureService : ICandidatureService
 
         await _notification.NotifierUtilisateurAsync(
             candidature.Etudiant.IdUtilisateur,
-            $"Votre embauche pour l'offre \"{candidature.Offre.Titre}\" a ete confirmee par l'employeur.",
+            $"Votre embauche pour l'offre \"{candidature.Offre.Titre}\" a été confirmée par l'employeur.",
             "/mes-candidatures");
 
         if (candidature.Etudiant.Utilisateur?.IdCollege is int idCollegeEtudiant)
@@ -310,7 +310,7 @@ public class CandidatureService : ICandidatureService
 
             await _notification.NotifierResponsablesCollegeAsync(
                 idCollegeEtudiant,
-                $"{nomEtudiant} a confirme son embauche chez {nomEmployeur} pour \"{candidature.Offre.Titre}\".",
+                $"{nomEtudiant} a confirmé son embauche chez {nomEmployeur} pour \"{candidature.Offre.Titre}\".",
                 "/responsable/suivi-etudiants");
         }
 

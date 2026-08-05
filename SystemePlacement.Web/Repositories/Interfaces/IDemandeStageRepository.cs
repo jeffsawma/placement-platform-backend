@@ -4,13 +4,13 @@ namespace SystemePlacement.Web.Repositories.Interfaces;
 
 public interface IDemandeStageRepository
 {
-    // Trouve le profil etudiant lie a l'utilisateur connecte.
+    // Trouve le profil étudiant lié à l'utilisateur connecté.
     Task<int?> GetIdEtudiantByUtilisateurAsync(int idUtilisateur);
 
-    // Trouve le college de l'etudiant.
+    // Trouve le collège de l'étudiant.
     Task<int?> GetIdCollegeEtudiantAsync(int idEtudiant);
 
-    // Verifie que le domaine est disponible pour le college de l'etudiant.
+    // Vérifie que le domaine est disponible pour le collège de l'étudiant.
     Task<bool> DomaineExistePourCollegeAsync(int idDomaine, int idCollege);
 
     Task AddAsync(DemandeStage demande);

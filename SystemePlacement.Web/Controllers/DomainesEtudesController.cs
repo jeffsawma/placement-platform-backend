@@ -174,7 +174,7 @@ public class DomainesEtudesController : ControllerBase
         {
             return BadRequest(new
             {
-                message = "Un autre domaine avec le meme nom ou le meme code existe deja."
+                message = "Un autre domaine avec le même nom ou le même code existe déjà."
             });
         }
 
@@ -218,7 +218,7 @@ public class DomainesEtudesController : ControllerBase
         {
             return BadRequest(new
             {
-                message = "Ce college est deja lie a ce domaine."
+                message = "Ce collège est déjà lié à ce domaine."
             });
         }
 
@@ -309,7 +309,7 @@ public class DomainesEtudesController : ControllerBase
                 });
             }
 
-            // L'admin desactive seulement le domaine pour son college.
+            // L'admin désactive seulement le domaine pour son collège.
             lien.Actif = false;
             await _context.SaveChangesAsync();
 
@@ -327,7 +327,7 @@ public class DomainesEtudesController : ControllerBase
             });
         }
 
-        // Le superadmin desactive le domaine global.
+        // Le superadmin désactive le domaine global.
         domaine.Actif = false;
         await _context.SaveChangesAsync();
 
@@ -366,7 +366,7 @@ public class DomainesEtudesController : ControllerBase
         {
             return BadRequest(new
             {
-                message = "Un domaine avec ce code existe deja avec un autre nom."
+                message = "Un domaine avec ce code existe déjà avec un autre nom."
             });
         }
 
@@ -374,7 +374,7 @@ public class DomainesEtudesController : ControllerBase
         {
             return BadRequest(new
             {
-                message = "Un domaine avec ce nom existe deja avec un autre code."
+                message = "Un domaine avec ce nom existe déjà avec un autre code."
             });
         }
 
@@ -400,7 +400,7 @@ public class DomainesEtudesController : ControllerBase
         {
             return BadRequest(new
             {
-                message = "Ce domaine est deja lie a votre college."
+                message = "Ce domaine est déjà lié à votre collège."
             });
         }
 
@@ -430,7 +430,7 @@ public class DomainesEtudesController : ControllerBase
         {
             return BadRequest(new
             {
-                message = "Un domaine avec ce code existe deja avec un autre nom."
+                message = "Un domaine avec ce code existe déjà avec un autre nom."
             });
         }
 
@@ -438,7 +438,7 @@ public class DomainesEtudesController : ControllerBase
         {
             return BadRequest(new
             {
-                message = "Un domaine avec ce nom existe deja avec un autre code."
+                message = "Un domaine avec ce nom existe déjà avec un autre code."
             });
         }
 

@@ -43,13 +43,13 @@ public class OffresStageDirectesController : ControllerBase
             : CreatedAtAction(nameof(Get), new { idOffreDirecte = offre.IdOffreDirecte }, offre);
     }
 
-    // US-21 : l'etudiant consulte les offres de stage directes recues.
+    // US-21 : l'étudiant consulte les offres de stage directes reçues.
     [HttpGet("recues")]
     [Authorize(Roles = "Etudiant")]
     public async Task<IActionResult> MesOffresRecues()
         => Ok(await _service.GetMesOffresRecuesAsync());
 
-    // US-21 : l'etudiant accepte ou refuse une offre de stage directe.
+    // US-21 : l'étudiant accepte ou refuse une offre de stage directe.
     [HttpPost("{idOffreDirecte:int}/repondre")]
     [Authorize(Roles = "Etudiant")]
     public async Task<IActionResult> Repondre(int idOffreDirecte, [FromBody] RepondreOffreDirecteRequest request)

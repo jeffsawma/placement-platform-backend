@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SystemePlacement.Web.Data;
@@ -19,7 +19,7 @@ public class EtudiantsController : ControllerBase
     }
 
     // GET /api/etudiants
-    // Sert a permettre a un employeur de choisir un etudiant pour une offre de stage directe.
+    // Sert à permettre à un employeur de choisir un étudiant pour une offre de stage directe.
     [HttpGet]
     [Authorize(Roles = "Employeur,ResponsableStage,Administrateur,SuperAdministrateur")]
     public async Task<ActionResult<IEnumerable<EtudiantSelectDto>>> GetEtudiants()
@@ -50,7 +50,7 @@ public class EtudiantsController : ControllerBase
     }
 
     // GET /api/etudiants/5
-    // Sert a recuperer un etudiant precis quand on arrive depuis une recommandation.
+    // Sert à récupérer un étudiant précis quand on arrive depuis une recommandation.
     [HttpGet("{idEtudiant:int}")]
     [Authorize(Roles = "Employeur,ResponsableStage,Administrateur,SuperAdministrateur")]
     public async Task<ActionResult<EtudiantSelectDto>> GetEtudiantById(int idEtudiant)
@@ -78,7 +78,7 @@ public class EtudiantsController : ControllerBase
 
         if (etudiant == null)
         {
-            return NotFound(new { message = "Etudiant introuvable." });
+            return NotFound(new { message = "Étudiant introuvable." });
         }
 
         return Ok(etudiant);

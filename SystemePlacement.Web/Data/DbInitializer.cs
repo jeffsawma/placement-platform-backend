@@ -11,7 +11,7 @@ public static class DbInitializer
 
         Console.WriteLine("[Seed] Debut de l'initialisation de la base.");
 
-        // Applique les migrations EF Core et cree la base si elle n'existe pas.
+        // Applique les migrations EF Core et crée la base si elle n'existe pas.
         // Ne pas utiliser EnsureCreatedAsync avec les migrations.
         await context.Database.MigrateAsync();
 
@@ -60,7 +60,7 @@ public static class DbInitializer
             {
                 IdRole = (int)RoleUtilisateur.ResponsableStage,
                 NomRole = "ResponsableStage",
-                Description = "Utilisateur pouvant suivre les etudiants, confirmer les stages et faire des recommandations.",
+                Description = "Utilisateur pouvant suivre les étudiants, confirmer les stages et faire des recommandations.",
                 Actif = true
             },
             new Role
@@ -85,7 +85,7 @@ public static class DbInitializer
             }
             else
             {
-                Console.WriteLine($"[Seed] Role deja present : {role.NomRole}");
+                Console.WriteLine($"[Seed] Rôle déjà présent : {role.NomRole}");
             }
         }
 
@@ -114,7 +114,7 @@ public static class DbInitializer
         await context.Colleges.AddAsync(college);
         await context.SaveChangesAsync();
 
-        Console.WriteLine("[Seed] College de test cree : Cegep Gerald-Godin.");
+        Console.WriteLine("[Seed] Collège de test créé : Cégep Gérald-Godin.");
 
         return college.IdCollege;
     }
@@ -126,7 +126,7 @@ public static class DbInitializer
 
         if (existe)
         {
-            Console.WriteLine("[Seed] SuperAdmin deja present.");
+            Console.WriteLine("[Seed] SuperAdmin déjà présent.");
             return;
         }
 
@@ -167,7 +167,7 @@ public static class DbInitializer
 
         await context.SaveChangesAsync();
 
-        Console.WriteLine("[Seed] SuperAdmin cree : superadmin / SuperAdmin123!");
+        Console.WriteLine("[Seed] SuperAdmin créé : superadmin / SuperAdmin123!");
     }
 
     private static async Task SeedAdminAsync(ApplicationDbContext context, int idCollegeTest)
@@ -178,7 +178,7 @@ public static class DbInitializer
 
         if (adminExistant != null)
         {
-            // Si l'admin existait deja sans college, on le rattache au college de test.
+            // Si l'admin existait déjà sans collège, on le rattache au collège de test.
             if (adminExistant.IdCollege == null)
             {
                 adminExistant.IdCollege = idCollegeTest;
@@ -186,7 +186,7 @@ public static class DbInitializer
                 Console.WriteLine("[Seed] Admin de test rattache au college Cegep Gerald-Godin.");
             }
 
-            Console.WriteLine("[Seed] Admin de test deja present.");
+            Console.WriteLine("[Seed] Admin de test déjà présent.");
             return;
         }
 

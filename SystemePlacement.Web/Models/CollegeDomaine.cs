@@ -1,4 +1,4 @@
-﻿namespace SystemePlacement.Web.Models;
+namespace SystemePlacement.Web.Models;
 
 public class CollegeDomaine
 {
@@ -10,7 +10,7 @@ public class CollegeDomaine
     // Un college peut accepter ou non les stagiaires pour ce domaine.
     public bool AccepteStagiaires { get; set; } = true;
 
-    // Permet de retirer un domaine d'un college sans supprimer le domaine global.
+    // Permet de retirer un domaine d'un collège sans supprimer le domaine global.
     public bool Actif { get; set; } = true;
 
     public College? College { get; set; }

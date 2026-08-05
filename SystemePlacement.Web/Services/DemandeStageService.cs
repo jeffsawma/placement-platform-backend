@@ -31,7 +31,7 @@ public class DemandeStageService : IDemandeStageService
         if (idEtudiant is null)
             return null;
 
-        // On valide que le domaine existe et qu'il est disponible pour le college de l'etudiant.
+        // On valide que le domaine existe et qu'il est disponible pour le collège de l'étudiant.
         var idCollegeEtudiant = await _repository.GetIdCollegeEtudiantAsync(idEtudiant.Value);
         if (idCollegeEtudiant is null)
             return null;
@@ -58,15 +58,15 @@ public class DemandeStageService : IDemandeStageService
         await _repository.SaveChangesAsync();
 
         var nomDomaine = await _repository.GetNomDomaineAsync(request.IdDomaine) ?? "un domaine";
-        var nomEtudiant = await _repository.GetNomEtudiantAsync(idEtudiant.Value) ?? "Un etudiant";
+        var nomEtudiant = await _repository.GetNomEtudiantAsync(idEtudiant.Value) ?? "Un étudiant";
 
-        // Les responsables du college de l'etudiant sont notifies.
+        // Les responsables du collège de l'étudiant sont notifiés.
         await _notification.NotifierResponsablesCollegeAsync(
             idCollegeEtudiant.Value,
             $"{nomEtudiant} a formule une demande de stage en « {nomDomaine} ».",
             "/responsable/suivi-etudiants");
 
-        // Les employeurs qui ont deja des offres dans ce domaine sont notifies.
+        // Les employeurs qui ont déjà des offres dans ce domaine sont notifiés.
         var idsEmployeurs = await _repository.GetIdsEmployeursByDomaineAsync(request.IdDomaine);
         foreach (var idEmployeur in idsEmployeurs)
         {
@@ -119,7 +119,7 @@ public class DemandeStageService : IDemandeStageService
         IdDomaine = d.IdDomaine,
         NomDomaine = d.DomaineEtude?.Nom ?? string.Empty,
 
-        // Le college vient maintenant de l'etudiant, pas du domaine.
+        // Le collège vient maintenant de l'étudiant, pas du domaine.
         NomCollege = d.Etudiant?.Utilisateur?.College?.Nom ?? string.Empty,
 
         NomEtudiant = d.Etudiant?.Utilisateur?.Nom ?? string.Empty,

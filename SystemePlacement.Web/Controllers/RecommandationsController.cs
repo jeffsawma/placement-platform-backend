@@ -25,7 +25,7 @@ public class RecommandationsController : ControllerBase
         return Ok(recommandations);
     }
 
-    // Permet ÃƒÂ  l'employeur connectÃƒÂ© de voir les recommandations qui lui sont destinÃƒÂ©es.
+    // Permet à l'employeur connecté de voir les recommandations qui lui sont destinées.
     [HttpGet("recues")]
     [Authorize(Roles = "Employeur")]
     public async Task<IActionResult> GetMesRecommandationsRecues()
