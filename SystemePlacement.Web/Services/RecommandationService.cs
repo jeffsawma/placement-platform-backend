@@ -13,17 +13,20 @@ public class RecommandationService : IRecommandationService
     private readonly ICurrentUserService _currentUser;
     private readonly IWebHostEnvironment _env;
     private readonly ApplicationDbContext _context;
+    private readonly INotificationService _notification;
 
     public RecommandationService(
         IRecommandationRepository repository,
         ICurrentUserService currentUser,
         IWebHostEnvironment env,
-        ApplicationDbContext context)
+        ApplicationDbContext context,
+        INotificationService notification)
     {
         _repository = repository;
         _currentUser = currentUser;
         _env = env;
         _context = context;
+        _notification = notification;
     }
 
         public async Task<IReadOnlyList<RecommandationResponse>> GetByEtudiantAsync(
@@ -122,6 +125,23 @@ public class RecommandationService : IRecommandationService
         await _repository.SaveChangesAsync();
 
         var result = await _repository.GetByIdAsync(recommandation.IdRecommandation);
+
+        if (result is not null)
+        {
+            var nomEtudiant =
+                $"{result.Etudiant?.Utilisateur?.Prenom} {result.Etudiant?.Utilisateur?.Nom}"
+                    .Trim();
+
+            if (string.IsNullOrWhiteSpace(nomEtudiant))
+            {
+                nomEtudiant = "l'étudiant concerné";
+            }
+
+            await _notification.NotifierEmployeurAsync(
+                request.IdEmployeurDestinataire.Value,
+                $"Vous avez reçu une recommandation pour {nomEtudiant}.",
+                "/employeur/recommandations-recues");
+        }
 
         return result is null ? null : Map(result);
     }
