@@ -98,7 +98,7 @@ public class OffreStageDirecteService : IOffreStageDirecteService
             }
         }
 
-        // EmpÃªche de faire deux offres directes actives pour la mÃªme candidature.
+        // Empeche de faire deux offres directes actives pour la mÃªme candidature.
         // Si IdCandidature est null, l'offre directe reste possible.
         if (request.IdCandidature.HasValue &&
             await _repository.ExistsActiveForCandidatureAsync(request.IdCandidature.Value))
@@ -136,7 +136,7 @@ public class OffreStageDirecteService : IOffreStageDirecteService
 
         await _notification.NotifierEtudiantAsync(
             offre.IdEtudiant,
-            "Vous avez reÃ§u une offre de stage directe d'un employeur.",
+            "Vous avez recu une offre de stage directe d'un employeur.",
             "/offres-stage-recues");
 
         var saved = await _repository.GetByIdAsync(offre.IdOffreDirecte);
@@ -146,7 +146,7 @@ public class OffreStageDirecteService : IOffreStageDirecteService
             var nomEtudiant = $"{saved.Etudiant.Utilisateur.Prenom} {saved.Etudiant.Utilisateur.Nom}";
             await _notification.NotifierResponsablesCollegeAsync(
                 idCollegeEtudiant,
-                $"Une offre de stage directe a Ã©tÃ© proposÃ©e Ã  {nomEtudiant}.",
+                $"Une offre de stage directe a été proposée à  {nomEtudiant}.",
                 "/responsable/suivi-etudiants");
         }
 
@@ -238,7 +238,7 @@ public class OffreStageDirecteService : IOffreStageDirecteService
 
         await _notification.NotifierEmployeurAsync(
             offre.IdEmployeur,
-            $"L'Ã©tudiant a {(request.Accepte ? "acceptÃ©" : "refusÃ©")} votre offre de stage directe.",
+            $"L'étudiant a {(request.Accepte ? "accepté" : "refusé")} votre offre de stage directe.",
             "/employeur/offres-stage-directes");
 
         if (offre.Etudiant?.Utilisateur?.IdCollege is int idCollegeEtu)
@@ -246,7 +246,7 @@ public class OffreStageDirecteService : IOffreStageDirecteService
             var nomEtu = $"{offre.Etudiant.Utilisateur.Prenom} {offre.Etudiant.Utilisateur.Nom}";
             await _notification.NotifierResponsablesCollegeAsync(
                 idCollegeEtu,
-                $"{nomEtu} a {(request.Accepte ? "acceptÃ©" : "refusÃ©")} une offre de stage directe.",
+                $"{nomEtu} a {(request.Accepte ? "accepté" : "refusé")} une offre de stage directe.",
                 "/responsable/suivi-etudiants");
         }
 
