@@ -205,7 +205,9 @@ public class PdfController : ControllerBase
         document.Info.Subject = typeOffre;
         document.Info.Author = "Système de placement";
 
-        var normalStyle = document.Styles[StyleNames.Normal];
+        var normalStyle = document.Styles[StyleNames.Normal]
+            ?? throw new InvalidOperationException(
+                "Le style Normal de MigraDoc est introuvable.");
         normalStyle.Font.Name = "Arial";
         normalStyle.Font.Size = Unit.FromPoint(10);
 
