@@ -80,22 +80,22 @@ public class UserService : IUserService
     {
         ApplyCreateRules(request);
 
-        // Valide que le courriel n'est pas deja utilise.
+        // Valide que le courriel n'est pas déjà utilisé.
         var courrielExiste = await _context.Utilisateurs
             .AnyAsync(u => u.Courriel == request.Courriel);
 
         if (courrielExiste)
         {
-            throw new InvalidOperationException("Ce courriel est deja utilise.");
+            throw new InvalidOperationException("Ce courriel est déjà utilisé.");
         }
 
-        // Valide que le nom d'utilisateur n'est pas deja utilise.
+        // Valide que le nom d'utilisateur n'est pas déjà utilisé.
         var nomUtilisateurExiste = await _context.Utilisateurs
             .AnyAsync(u => u.NomUtilisateur == request.NomUtilisateur);
 
         if (nomUtilisateurExiste)
         {
-            throw new InvalidOperationException("Ce nom d'utilisateur est deja utilise.");
+            throw new InvalidOperationException("Ce nom d'utilisateur est déjà utilisé.");
         }
 
         // Valide que le role existe.
@@ -104,7 +104,7 @@ public class UserService : IUserService
 
         if (!roleExiste)
         {
-            throw new InvalidOperationException("Le role selectionne est invalide.");
+            throw new InvalidOperationException("Le rôle sélectionné est invalide.");
         }
 
         await ValidateCollegeAsync(request.IdCollege);
@@ -127,7 +127,7 @@ public class UserService : IUserService
         await _context.Utilisateurs.AddAsync(utilisateur);
         await _context.SaveChangesAsync();
 
-        // Cree aussi le profil lie au role : employeur, etudiant, responsable ou admin.
+        // Crée aussi le profil lié au rôle : employeur, étudiant, responsable ou admin.
         await CreateRoleProfileAsync(utilisateur);
 
         var utilisateurCree = await GetByIdAsync(utilisateur.IdUtilisateur);
@@ -258,7 +258,7 @@ public class UserService : IUserService
             return query.Where(u => u.IdCollege == _currentUserService.IdCollege.Value);
         }
 
-        // Par securite, aucun autre role ne doit acceder a la gestion des utilisateurs.
+        // Par sécurité, aucun autre rôle ne doit accéder à la gestion des utilisateurs.
         return query.Where(u => false);
     }
 
@@ -315,7 +315,7 @@ public class UserService : IUserService
 
         if (!collegeExiste)
         {
-            throw new InvalidOperationException("Le college selectionne est invalide.");
+            throw new InvalidOperationException("Le collège sélectionné est invalide.");
         }
     }
 }

@@ -10,7 +10,7 @@ public class DomaineEtude
     // Code global du domaine, exemple : INFO.
     public string Code { get; set; } = string.Empty;
 
-    // Permet de desactiver un domaine global sans le supprimer.
+    // Permet de désactiver un domaine global sans le supprimer.
     public bool Actif { get; set; } = true;
 
     // Liste des cegeps qui utilisent ce domaine.

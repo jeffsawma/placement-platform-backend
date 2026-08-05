@@ -7,7 +7,7 @@ public class Stage
     [Key]
     public int IdStage { get; set; }
 
-    // Etudiant place en stage.
+    // Étudiant placé en stage.
     public int IdEtudiant { get; set; }
 
     public Etudiant? Etudiant { get; set; }

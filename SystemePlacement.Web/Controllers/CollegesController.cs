@@ -69,7 +69,7 @@ public class CollegesController : ControllerBase
 
         if (nomExiste)
         {
-            return BadRequest(new { message = $"Un college avec le nom '{nom}' existe deja." });
+            return BadRequest(new { message = $"Un collège avec le nom '{nom}' existe déjà." });
         }
 
         var college = new College
@@ -121,7 +121,7 @@ public class CollegesController : ControllerBase
 
         if (nomExiste)
         {
-            return BadRequest(new { message = $"Un autre college avec le nom '{nom}' existe deja." });
+            return BadRequest(new { message = $"Un autre collège avec le nom '{nom}' existe déjà." });
         }
 
         existingCollege.Nom = nom;

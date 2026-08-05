@@ -50,7 +50,7 @@ public class RecommandationService : IRecommandationService
             return [];
         }
 
-        // On rÃ©cupÃ¨re le profil employeur liÃ© Ã  l'utilisateur connectÃ©.
+        // On récupère le profil employeur lié à l'utilisateur connecté.
         var employeur = await _context.Employeurs
             .AsNoTracking()
             .FirstOrDefaultAsync(e => e.IdUtilisateur == _currentUser.IdUtilisateur.Value);
@@ -84,7 +84,7 @@ public class RecommandationService : IRecommandationService
             return null;
         }
 
-        // VÃ©rifie que l'employeur choisi existe vraiment.
+        // Vérifie que l'employeur choisi existe vraiment.
         var employeurExiste = await _context.Employeurs
             .AsNoTracking()
             .AnyAsync(e => e.IdEmployeur == request.IdEmployeurDestinataire.Value);

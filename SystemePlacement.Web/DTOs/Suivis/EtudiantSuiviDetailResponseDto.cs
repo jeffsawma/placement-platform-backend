@@ -1,8 +1,8 @@
-﻿namespace SystemePlacement.Web.DTOs.Suivis;
+namespace SystemePlacement.Web.DTOs.Suivis;
 
 public class EtudiantSuiviDetailResponseDto
 {
-    // Informations principales de l'etudiant suivi.
+    // Informations principales de l'étudiant suivi.
     public int IdEtudiant { get; set; }
 
     public int IdUtilisateur { get; set; }
@@ -19,7 +19,7 @@ public class EtudiantSuiviDetailResponseDto
 
     public string? NomCollege { get; set; }
 
-    // Resume des candidatures de l'etudiant.
+    // Résumé des candidatures de l'étudiant.
     public List<CandidatureSuiviDto> Candidatures { get; set; } = new();
 
     // Notes et demarches de suivi ajoutees par les responsables.

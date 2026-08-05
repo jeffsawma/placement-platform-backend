@@ -18,7 +18,7 @@ public class DemarchesSuiviController : ControllerBase
     }
 
     // GET /api/demarches-suivi/etudiants
-    // Liste des etudiants suivis par le responsable de stage.
+    // Liste des étudiants suivis par le responsable de stage.
     [HttpGet("etudiants")]
     [Authorize(Roles = "ResponsableStage")]
     public async Task<IActionResult> GetEtudiantsSuivis()
@@ -28,7 +28,7 @@ public class DemarchesSuiviController : ControllerBase
     }
 
     // GET /api/demarches-suivi/etudiants/5
-    // Detail d'un etudiant suivi.
+    // Détail d'un étudiant suivi.
     [HttpGet("etudiants/{idEtudiant:int}")]
     [Authorize(Roles = "ResponsableStage")]
     public async Task<IActionResult> GetEtudiantSuiviDetail(int idEtudiant)
@@ -37,14 +37,14 @@ public class DemarchesSuiviController : ControllerBase
 
         if (detail == null)
         {
-            return NotFound(new { message = "Etudiant introuvable ou non accessible." });
+            return NotFound(new { message = "Étudiant introuvable ou non accessible." });
         }
 
         return Ok(detail);
     }
 
     // POST /api/demarches-suivi/etudiants/5/demarches
-    // Ajoute une demarche ou note de suivi pour un etudiant.
+    // Ajoute une démarche ou note de suivi pour un étudiant.
     [HttpPost("etudiants/{idEtudiant:int}/demarches")]
     [Authorize(Roles = "ResponsableStage")]
     public async Task<IActionResult> AjouterDemarche(
@@ -55,7 +55,7 @@ public class DemarchesSuiviController : ControllerBase
 
         if (demarche == null)
         {
-            return NotFound(new { message = "Etudiant introuvable ou non accessible." });
+            return NotFound(new { message = "Étudiant introuvable ou non accessible." });
         }
 
         return CreatedAtAction(
@@ -65,7 +65,7 @@ public class DemarchesSuiviController : ControllerBase
     }
 
     // GET /api/demarches-suivi/mes-demarches
-    // Liste des demarches visibles pour l'etudiant connecte.
+    // Liste des démarches visibles pour l'étudiant connecté.
     [HttpGet("mes-demarches")]
     [Authorize(Roles = "Etudiant")]
     public async Task<IActionResult> GetMesDemarches()

@@ -5,7 +5,7 @@ namespace SystemePlacement.Web.Services.Interfaces;
 
 public interface IOffreService
 {
-    // Liste publique des offres, utilisee pour la recherche etudiant.
+    // Liste publique des offres, utilisée pour la recherche d'offres par l'étudiant.
     Task<IReadOnlyList<OffreResumeeResponse>> GetAllAsync(
         TypeOffre? type,
         StatutOffre? statut,

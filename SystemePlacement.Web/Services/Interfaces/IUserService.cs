@@ -1,4 +1,4 @@
-﻿using SystemePlacement.Web.DTOs.Users;
+using SystemePlacement.Web.DTOs.Users;
 
 namespace SystemePlacement.Web.Services.Interfaces;
 
@@ -10,12 +10,12 @@ public interface IUserService
     // Retourne un utilisateur precis par son identifiant.
     Task<UtilisateurResponseDto?> GetByIdAsync(int idUtilisateur);
 
-    // Cree un utilisateur et hash son mot de passe avant sauvegarde.
+    // Crée un utilisateur et hache son mot de passe avant sauvegarde.
     Task<UtilisateurResponseDto> CreateAsync(UtilisateurCreateDto request);
 
-    // Modifie les informations generales d'un utilisateur.
+    // Modifie les informations générales d'un utilisateur.
     Task<bool> UpdateAsync(int idUtilisateur, UtilisateurUpdateDto request);
 
-    // Active ou desactive un compte utilisateur.
+    // Active ou désactive un compte utilisateur.
     Task<bool> SetActifAsync(int idUtilisateur, bool actif);
 }

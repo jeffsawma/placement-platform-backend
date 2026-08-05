@@ -14,18 +14,18 @@ public class DemandesStageController : ControllerBase
 
     public DemandesStageController(IDemandeStageService service) => _service = service;
 
-    // US-19 : l'etudiant formule une demande de stage dans un domaine.
+    // US-19 : l'étudiant formule une demande de stage dans un domaine.
     [HttpPost]
     [Authorize(Roles = "Etudiant")]
     public async Task<IActionResult> Creer([FromBody] CreerDemandeStageRequest request)
     {
         var demande = await _service.CreerAsync(request);
         return demande is null
-            ? Conflict(new { message = "Demande impossible : profil etudiant introuvable." })
+            ? Conflict(new { message = "Demande impossible : profil étudiant introuvable." })
             : Ok(demande);
     }
 
-    // Demandes de stage de l'etudiant connecte.
+    // Demandes de stage de l'étudiant connecté.
     [HttpGet("mes")]
     [Authorize(Roles = "Etudiant")]
     public async Task<IActionResult> MesDemandes()

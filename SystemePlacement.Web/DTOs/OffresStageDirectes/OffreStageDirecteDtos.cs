@@ -1,4 +1,4 @@
-﻿using SystemePlacement.Web.Enums;
+using SystemePlacement.Web.Enums;
 
 namespace SystemePlacement.Web.DTOs.OffresStageDirectes
 {
@@ -30,7 +30,7 @@ namespace SystemePlacement.Web.DTOs.OffresStageDirectes
         public int? IdCandidature { get; set; }
         public int? IdDemandeStage { get; set; }
 
-        // Infos de l'offre de stage liee, si l'employeur en a selectionne une.
+        // Infos de l'offre de stage liée, si l'employeur en a sélectionné une.
         public string? TitreOffreStage { get; set; }
         public string? DescriptionOffreStage { get; set; }
         public string? VilleOffreStage { get; set; }

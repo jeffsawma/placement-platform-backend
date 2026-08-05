@@ -29,7 +29,7 @@ public class StageService : IStageService
 
         if (!etudiantExiste)
         {
-            throw new InvalidOperationException("Etudiant introuvable.");
+            throw new InvalidOperationException("Étudiant introuvable.");
         }
 
         if (request.IdOffre.HasValue)
@@ -122,14 +122,14 @@ public class StageService : IStageService
 
         if (confirmationExiste)
         {
-            throw new InvalidOperationException("Ce type de confirmation existe deja pour ce stage.");
+            throw new InvalidOperationException("Ce type de confirmation existe déjà pour ce stage.");
         }
 
         var decision = request.Decision.Trim();
 
         if (decision != "Accepte" && decision != "Refuse")
         {
-            throw new InvalidOperationException("La decision doit etre Accepte ou Refuse.");
+            throw new InvalidOperationException("La décision doit être Accepte ou Refuse.");
         }
 
         if (!_currentUser.IdUtilisateur.HasValue)
@@ -187,7 +187,7 @@ public class StageService : IStageService
                 s.Offre.IdEmployeur == idEmployeur.Value);
         }
 
-        // Un responsable voit seulement les stages des etudiants de son college.
+        // Un responsable voit seulement les stages des étudiants de son collège.
         if (_currentUser.Role == "ResponsableStage")
         {
             if (!_currentUser.IdCollege.HasValue)
