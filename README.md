@@ -72,7 +72,7 @@ Le frontend React est disponible ici :
 ## Démarrage
 
 1. Ouvrir `SystemePlacement.sln` dans Visual Studio.
-2. Configurer la connexion MySQL dans `SystemePlacement.Web/appsettings.json` selon l’environnement local.
+2. Configurer la chaîne de connexion MySQL et la clé JWT avec des variables d’environnement ou une configuration locale non suivie par Git.
 3. Définir `SystemePlacement.Web` comme projet de démarrage.
 4. Lancer l’application.
 
@@ -84,7 +84,9 @@ dotnet ef database update --project SystemePlacement.Web
 
 ## Configuration
 
-L’API nécessite une configuration locale appropriée pour la connexion à la base de données et les autres paramètres propres à l’environnement.
+Les valeurs sensibles ne sont pas stockées dans `appsettings.json`.
+
+La chaîne de connexion et la clé JWT peuvent être fournies avec les variables d’environnement `ConnectionStrings__DefaultConnection` et `Jwt__Key`.
 
 Les informations sensibles ou propres à un environnement local ne doivent pas être ajoutées au dépôt public.
 
